@@ -8,7 +8,7 @@ use Renegare\Soauth\Test\WebTestCase;
 
 class AuthTest extends WebTestCase {
 
-    public function testUserCanAuthenticate() {
+    public function testAuthenticateAction() {
         $expectedClientId = 1;
         $expectedRedirectTarget = 'http://external.client.com/redirect/path';
 
@@ -50,7 +50,7 @@ class AuthTest extends WebTestCase {
 
                 $mockUser->expects($this->once())
                     ->method('isValidPassword')->will($this->returnValue(true));
-                    
+
                 return $mockUser;
             }));
 
@@ -86,6 +86,13 @@ class AuthTest extends WebTestCase {
             'password' => 'Password123'
         ]);
 
+        $this->assertEquals([
+            'username' => 'test+1@example.com',
+            'password' => 'Password123',
+            'client_id' => $expectedClientId,
+            'redirect_uri' => $expectedRedirectTarget
+        ], $form->getPhpValues());
+        
         $client->submit($form);
         $response = $client->getResponse();
         $this->assertEquals(302, $response->getStatusCode());
