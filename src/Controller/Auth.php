@@ -51,9 +51,10 @@ class Auth {
         $client = $this->clientProvider->load($client_id);
         $user = $this->userProvider->loadByUsername($username);
 
-        $accessCredentials = $this->accessProvider->generateAccessCredentials($client, $user, $request->getClientIp());
-
-        return new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
+        if($user->isValidPassword($password)) {
+            $accessCredentials = $this->accessProvider->generateAccessCredentials($client, $user, $request->getClientIp());
+            return new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
+        }
     }
 
     protected function getAuthClientIdentifiers(Request $request) {
