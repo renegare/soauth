@@ -14,36 +14,6 @@ class ListenerTest extends WebTestCase {
     public function setUp() {
         $app = $this->createApplication(true);
 
-        $app->register(new \Silex\Provider\SecurityServiceProvider);
-
-        $app['security.firewalls'] = [
-            'healthcheck' => [
-                'pattern' => '^/healthcheck',
-                'anonymous' => true,
-                'stateless' => true
-            ],
-
-            'auth' => [
-                'pattern' => '^/auth',
-                'anonymous' => true,
-                'stateless' => true
-            ],
-
-            'api' => [
-                'pattern' => '^/',
-                'soauth' => true,
-                'stateless' => true
-            ]
-        ];
-
-        $app->get('/healthcheck', function(){
-            return 'All Good!';
-        });
-
-        $app->get('/api', function(){
-            return 'Access Granted';
-        });
-
         $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
         $app['soauth.access.provider'] = $this->mockAccessProvider;
         $this->app = $app;

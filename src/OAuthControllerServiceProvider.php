@@ -6,7 +6,7 @@ use Silex\ControllerProviderInterface;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
 
-class OAuthControllerProvider implements ControllerProviderInterface, ServiceProviderInterface {
+class OAuthControllerServiceProvider implements ControllerProviderInterface, ServiceProviderInterface {
 
     public function register(Application $app) {
         $app['security.authentication_listener.factory.soauth'] = $app->protect(function ($name, $options) use ($app) {

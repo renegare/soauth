@@ -6,8 +6,7 @@ use Silex\Application;
 use Symfony\Component\HttpKernel\Client;
 use Symfony\Component\BrowserKit\Cookie;
 
-use Renegare\Soauth\OAuthControllerProvider;
-use Silex\Provider\ServiceControllerServiceProvider;
+use Renegare\Soauth\OAuthControllerServiceProvider;
 
 class WebTestCase extends \Silex\WebTestCase {
 
@@ -28,14 +27,48 @@ class WebTestCase extends \Silex\WebTestCase {
         }
         $app['debug'] = true;
 
-        $app->register(new ServiceControllerServiceProvider); // needs to be registered!!
+        $this->configureApplication($app);
 
-        $provider = new OAuthControllerProvider;
+        return $app;
+    }
+
+    private function configureApplication(Application $app) {
+        $app->register(new \Silex\Provider\ServiceControllerServiceProvider);
+        $app->register(new \Silex\Provider\SecurityServiceProvider);
+
+        $provider = new OAuthControllerServiceProvider;
         $app->register($provider);
         $app->mount('/auth', $provider);
 
+        $app['security.firewalls'] = [
+            'healthcheck' => [
+                'pattern' => '^/healthcheck',
+                'anonymous' => true,
+                'stateless' => true
+            ],
+
+            'auth' => [
+                'pattern' => '^/auth',
+                'anonymous' => true,
+                'stateless' => true
+            ],
+
+            'api' => [
+                'pattern' => '^/',
+                'soauth' => true,
+                'stateless' => true
+            ]
+        ];
+
+        $app->get('/healthcheck', function(){
+            return 'All Good!';
+        });
+
+        $app->get('/api', function(){
+            return 'Access Granted';
+        });
+
         $app['logger'] = $this->getMock('Psr\Log\LoggerInterface');
-        return $app;
     }
 
 }
