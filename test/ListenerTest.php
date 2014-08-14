@@ -65,10 +65,13 @@ class ListenerTest extends WebTestCase {
     public function testAccessAllowedForAuthorizedUser() {
         $expectedAccessCode = 'fake-access-code=';
 
-        $this->mockAccessProvider->expects($this->once())->method('get')
+        $this->mockAccessProvider->expects($this->once())->method('getAccessToken')
             ->will($this->returnCallback(function($accessCode) use ($expectedAccessCode) {
                 $this->assertEquals($expectedAccessCode, $accessCode);
-                return $this->getMock('Renegare\Soauth\CredentialsInterface');
+                return $this->getMockBuilder('Renegare\Soauth\AccessToken')
+                    ->disableOriginalConstructor()
+                    ->getMock()
+                    ;
             }));
 
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $expectedAccessCode], $this->app);
@@ -83,7 +86,7 @@ class ListenerTest extends WebTestCase {
     public function testAccessDeniedForInvalidAuthorizedUser() {
         $expectedAccessCode = 'fake-access-code=';
 
-        $this->mockAccessProvider->expects($this->once())->method('get')
+        $this->mockAccessProvider->expects($this->once())->method('getAccessToken')
             ->will($this->returnCallback(function($accessCode) use ($expectedAccessCode) {
                 $this->assertEquals($expectedAccessCode, $accessCode);
                 throw new \Exception('Something went wrong');

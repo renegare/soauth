@@ -53,11 +53,7 @@ class Listener extends AbstractLogger {
 
         try {
             $accessCode = $request->headers->get('X-ACCESS-CODE');
-            $credentials = $this->accessProvider->get($accessCode);
-            $token = new AccessToken($credentials);
-
-            return $token;
-
+            return $this->accessProvider->getAccessToken($accessCode);
         } catch (\Exception $e) {
             $exception = new BadRequestException($request, 'No valid access code found', Response::HTTP_UNAUTHORIZED, $e);
             throw $exception;

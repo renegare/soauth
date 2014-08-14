@@ -25,7 +25,7 @@ interface AccessProviderInterface {
      * @param $accessCode string
      * @return CredentialsInterface
      */
-    public function get($accessCode);
+    public function getAccessToken($accessCode);
 
     /**
      * generate a new set of credentials from the old one
