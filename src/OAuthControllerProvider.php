@@ -52,8 +52,6 @@ class OAuthControllerProvider implements ControllerProviderInterface, ServicePro
             }
 
             $controller->setRenderer($app['soauth.renderer']);
-            $controller->setClientProvider($app['soauth.client.provider']);
-            $controller->setUserProvider($app['soauth.user.provider']);
             $controller->setAccessProvider($app['soauth.access.provider']);
 
             return $controller;

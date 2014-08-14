@@ -5,6 +5,7 @@ namespace Renegare\Soauth\Test\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
 use Renegare\Soauth\Test\WebTestCase;
+use Renegare\Soauth\SoauthException;
 
 class AccessTest extends WebTestCase {
 
@@ -53,7 +54,7 @@ class AccessTest extends WebTestCase {
                 $this->assertEquals($expectedAuthCode, $authCode, $testCaseLabel);
 
                 if($expectedAccessProviderException) {
-                    throw new \Exception('Some error!');
+                    throw new SoauthException('Some error!');
                 }
 
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
@@ -110,7 +111,7 @@ class AccessTest extends WebTestCase {
                 $this->assertEquals($expectedRefreshCode, $refreshCode, $testCaseLabel);
 
                 if($expectedAccessProviderException) {
-                    throw new \Exception('Some error!');
+                    throw new SoauthException('Some error!');
                 }
 
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');

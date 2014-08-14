@@ -11,6 +11,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Renegare\Soauth\AccessProviderInterface;
 use Renegare\Soauth\AbstractController;
 use Renegare\Soauth\BadDataException;
+use Renegare\Soauth\SoauthException;
 
 class Access extends AbstractController {
 
@@ -32,7 +33,7 @@ class Access extends AbstractController {
                 'refresh_code' => $credentials->getRefreshCode(),
                 'expires' => $credentials->getExpires()
             ]);
-        } catch (\Exception $e) {
+        } catch (SoauthException $e) {
             $data = [];
 
             if($e instanceof BadDataException) {
@@ -56,7 +57,7 @@ class Access extends AbstractController {
                 'refresh_code' => $credentials->getRefreshCode(),
                 'expires' => $credentials->getExpires()
             ]);
-        } catch (\Exception $e) {
+        } catch (SoauthException $e) {
             $data = [];
 
             if($e instanceof BadDataException) {

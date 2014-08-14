@@ -4,7 +4,7 @@ namespace Renegare\Soauth;
 
 use Symfony\Component\HttpFoundation\Request;
 
-class BadRequestException extends \RuntimeException {
+class BadRequestException extends SoauthException {
 
     protected $request;
 

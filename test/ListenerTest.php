@@ -4,6 +4,7 @@ namespace Renegare\Soauth\Test;
 
 use Symfony\Component\HttpFoundation\Response;
 use Renegare\Soauth\Test\WebTestCase;
+use Renegare\Soauth\SoauthException;
 
 class ListenerTest extends WebTestCase {
 
@@ -89,7 +90,7 @@ class ListenerTest extends WebTestCase {
         $this->mockAccessProvider->expects($this->once())->method('getAccessToken')
             ->will($this->returnCallback(function($accessCode) use ($expectedAccessCode) {
                 $this->assertEquals($expectedAccessCode, $accessCode);
-                throw new \Exception('Something went wrong');
+                throw new SoauthException('Something went wrong');
             }));
 
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $expectedAccessCode], $this->app);

@@ -5,6 +5,7 @@ namespace Renegare\Soauth\Test\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
 use Renegare\Soauth\Test\WebTestCase;
+use Renegare\Soauth\SoauthException;
 
 class AuthTest extends WebTestCase {
 
@@ -18,14 +19,10 @@ class AuthTest extends WebTestCase {
      * mock out all dependencies ... cause we can!
      */
     public function setUp() {
-        $this->mockClientProvider = $this->getMock('Renegare\Soauth\ClientProviderInterface');
-        $this->mockUserProvider = $this->getMock('Renegare\Soauth\UserProviderInterface');
         $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
         $this->mockRenderer = $this->getMock('Renegare\Soauth\RendererInterface');
 
         $app = $this->createApplication(true);
-        $app['soauth.client.provider'] = $this->mockClientProvider;
-        $app['soauth.user.provider'] = $this->mockUserProvider;
         $app['soauth.access.provider'] = $this->mockAccessProvider;
         $app['soauth.renderer'] = $this->mockRenderer;
         $this->app = $app;
@@ -137,67 +134,27 @@ class AuthTest extends WebTestCase {
                 'redirect_uri' => 'http://external.client.com/redirect/path',
                 'username' => 'test+1@example.com',
                 'password' => 'Password123'
-            ], [], true],
-
-            [[
-                'client_id' => '1',
-                'redirect_uri' => 'http://external.client.com/redirect/path',
-                'username' => 'test+1@example.com',
-                'password' => 'Password123'
-            ], [], false, true],
-
-            [[
-                'client_id' => '1',
-                'redirect_uri' => 'http://external.client.com/redirect/path',
-                'username' => 'test+1@example.com',
-                'password' => 'Password123'
-            ], [], false, false, true]
+            ], [], true]
         ];
     }
 
     /**
      * @dataProvider provideAuthenticateActionTestCases
      */
-    public function testAuthenticateAction($requestData, array $expectedValidationError = null, $expectInvalidClient = false, $expectInvalidUser = false, $expectAuthProviderException = false) {
+    public function testAuthenticateAction($requestData, array $expectedValidationError = null, $expectAuthProviderException = false) {
         $expectedIp = '192.168.192.168';
 
-        $expectedToSucceed = !$expectedValidationError && !$expectInvalidClient && !$expectInvalidUser && !$expectAuthProviderException;
-
-
-        $mockClient = $this->getMock('Renegare\Soauth\ClientInterface');
-        $mockUser = $this->getMock('Renegare\Soauth\UserInterface');
-
-        $this->mockClientProvider->expects($this->any())->method('load')
-            ->will($this->returnCallback(function($id) use ($mockClient, $requestData, $expectInvalidClient){
-                $this->assertEquals($requestData['client_id'], $id);
-                if($expectInvalidClient) {
-                    throw new \Exception('Some error!');
-                }
-                return $mockClient;
-            }));
-
-        $this->mockUserProvider->expects($this->any())->method('loadByUsername')
-            ->will($this->returnCallback(function($username) use ($mockUser, $requestData, $expectInvalidUser){
-                $this->assertEquals($requestData['username'], $username);
-
-                if($expectInvalidUser) {
-                    throw new \Exception('Some error!');
-                }
-
-                $mockUser->expects($this->once())
-                    ->method('isValidPassword')->will($this->returnValue(true));
-
-                return $mockUser;
-            }));
+        $expectedToSucceed = !$expectedValidationError && !$expectAuthProviderException;
 
         $this->mockAccessProvider->expects($this->any())->method('generate')
-            ->will($this->returnCallback(function($client, $user, $ip) use ($expectedIp, $mockClient, $mockUser, $expectAuthProviderException) {
-                $this->assertEquals($expectedIp, $ip);
-                $this->assertEquals($mockClient, $client);
-                $this->assertEquals($mockUser, $user);
+            ->will($this->returnCallback(function($clientId, $redirectUri, $username, $password, $request) use ($expectedIp, $requestData, $expectAuthProviderException) {
+                $this->assertEquals($expectedIp, $request->getClientIp());
+                $this->assertEquals($requestData['client_id'], $clientId);
+                $this->assertEquals($requestData['username'], $username);
+                $this->assertEquals($requestData['password'], $password);
 
                 if($expectAuthProviderException) {
-                    throw new \Exception('Some error!');
+                    throw new SoauthException('Some error!');
                 }
 
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');

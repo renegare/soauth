@@ -2,6 +2,8 @@
 
 namespace Renegare\Soauth;
 
+use Symfony\Component\HttpFoundation\Request;
+
 interface AccessProviderInterface {
 
     /**
@@ -11,7 +13,7 @@ interface AccessProviderInterface {
      * @param $ip string
      * @return CredentialsInterface
      */
-    public function generate(ClientInterface $client, UserInterface $user, $ip='0.0.0.0');
+    public function generate($clientId, $redirecUri, $username, $password, Request $request);
 
     /**
      * get access credentials for the given auth code

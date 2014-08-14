@@ -11,11 +11,10 @@ use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 use Renegare\Soauth\RendererInterface;
-use Renegare\Soauth\ClientProviderInterface;
-use Renegare\Soauth\UserProviderInterface;
 use Renegare\Soauth\AccessProviderInterface;
 use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\AbstractController;
+use Renegare\Soauth\SoauthException;
 
 class Auth extends AbstractController {
 
@@ -48,7 +47,7 @@ class Auth extends AbstractController {
         try {
             $data = $this->getAuthClientIdentifiers($request);
             $response = $this->renderer->renderSignInForm($data);
-        } catch (BadDataException $e) {
+        } catch (SoauthException $e) {
             $response = new Response('Error', Response::HTTP_BAD_REQUEST);
         }
 
@@ -58,20 +57,13 @@ class Auth extends AbstractController {
     public function authenticateAction(Request $request) {
         try {
             $data = $this->getAuthCredentials($request);
-
             // exports $client_id, $redirect_uri, $username and $password
             extract($data);
 
-            $client = $this->clientProvider->load($client_id);
-            $user = $this->userProvider->loadByUsername($username);
-
-            if($user->isValidPassword($password)) {
-                $accessCredentials = $this->accessProvider->generate($client, $user, $request->getClientIp());
-                $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
-            }
-        } catch (\Exception $e) {
+            $accessCredentials = $this->accessProvider->generate($client_id, $redirect_uri, $username, $password, $request);
+            $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
+        } catch (SoauthException $e) {
             $data = $request->request->all();
-            
             if($e instanceof BadDataException) {
                 $data['errors'] = $e->getErrors();
             }
