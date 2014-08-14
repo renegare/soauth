@@ -37,11 +37,11 @@ class OAuthControllerProvider implements ControllerProviderInterface {
             return $controller;
         });
 
-        $controllers->get('', 'soauth.controller.auth:signinAction');
-        $controllers->post('', 'soauth.controller.auth:authenticateAction');
+        $controllers->get('/', 'soauth.controller.auth:signinAction');
+        $controllers->post('/', 'soauth.controller.auth:authenticateAction');
 
-        $controllers->post('access', 'soauth.controller.access:exchangeAction');
-        $controllers->put('access', 'soauth.controller.access:refreshAction');
+        $controllers->post('/access', 'soauth.controller.access:exchangeAction');
+        $controllers->put('/access', 'soauth.controller.access:refreshAction');
 
         return $controllers;
     }

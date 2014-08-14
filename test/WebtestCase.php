@@ -30,7 +30,7 @@ class WebTestCase extends \Silex\WebTestCase {
 
         $app->register(new ServiceControllerServiceProvider); // needs to be registered!!
 
-        $app->mount('/', new OAuthControllerProvider);
+        $app->mount('/auth', new OAuthControllerProvider);
 
         return $app;
     }
