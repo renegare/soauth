@@ -12,6 +12,11 @@ class OAuthControllerProvider implements ControllerProviderInterface {
 
         $app['soauth.controller.auth'] = $app->share(function($app){
             $controller = new Controller\Auth;
+
+            if(isset($app['logger']) && $app['logger']) {
+                $controller->setLogger($app['logger']);
+            }
+
             $controller->setRenderer($app['soauth.renderer']);
             $controller->setClientProvider($app['soauth.client.provider']);
             $controller->setUserProvider($app['soauth.user.provider']);
@@ -21,6 +26,11 @@ class OAuthControllerProvider implements ControllerProviderInterface {
 
         $app['soauth.controller.access'] = $app->share(function($app){
             $controller = new Controller\Access;
+
+            if(isset($app['logger']) && $app['logger']) {
+                $controller->setLogger($app['logger']);
+            }
+
             return $controller;
         });
 

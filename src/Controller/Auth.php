@@ -17,8 +17,9 @@ use Renegare\Soauth\ClientProviderInterface;
 use Renegare\Soauth\UserProviderInterface;
 use Renegare\Soauth\AccessProviderInterface;
 use Renegare\Soauth\BadRequestException;
+use Renegare\Soauth\AbstractController;
 
-class Auth {
+class Auth extends AbstractController {
 
     /** @var RendererInterface */
     protected $renderer;
