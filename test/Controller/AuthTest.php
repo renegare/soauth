@@ -129,35 +129,54 @@ class AuthTest extends WebTestCase {
                 'redirect_uri' => 'http://external.client.com/redirect/path',
                 'username' => 'test+1@example.com',
                 'password' => 'Password123'
-            ], '192.168.192.168']
+            ], '192.168.192.168'],
+
+            [false, [
+                'client_id' => '1',
+                'redirect_uri' => 'http://external.client.com/redirect/path',
+                'username' => 'test+1@example.com',
+                'password' => 'Password123'
+            ], '192.168.192.168', true],
+
+            [false, [
+                'client_id' => '1',
+                'redirect_uri' => 'http://external.client.com/redirect/path',
+                'username' => 'test+1@example.com',
+                'password' => 'Password123'
+            ], '192.168.192.168', false, true]
         ];
     }
 
     /**
      * @dataProvider provideSigninActionTestCases
      */
-    public function testSigninAction($expectedToSucceed, $requestData, $expectedIp) {
+    public function testSigninAction($expectedToSucceed, $requestData, $expectedIp, $expectInvalidClient = false, $expectInvalidUser = false) {
 
         $mockClient = $this->getMock('Renegare\Soauth\ClientInterface');
         $mockUser = $this->getMock('Renegare\Soauth\UserInterface');
 
         $this->mockClientProvider->expects($this->any())->method('load')
-            ->will($this->returnCallback(function($id) use ($mockClient){
-                $this->assertEquals(1, $id);
+            ->will($this->returnCallback(function($id) use ($mockClient, $requestData, $expectInvalidClient){
+                $this->assertEquals($requestData['client_id'], $id);
+                if($expectInvalidClient) {
+                    throw new \Exception('Some error!');
+                }
                 return $mockClient;
             }));
 
-        if($expectedToSucceed) {
-            $this->mockUserProvider->expects($this->once())->method('loadByUsername')
-                ->will($this->returnCallback(function($username) use ($mockUser, $requestData){
-                    $this->assertEquals($requestData['username'], $username);
+        $this->mockUserProvider->expects($this->any())->method('loadByUsername')
+            ->will($this->returnCallback(function($username) use ($mockUser, $requestData, $expectInvalidUser){
+                $this->assertEquals($requestData['username'], $username);
 
-                    $mockUser->expects($this->once())
-                        ->method('isValidPassword')->will($this->returnValue(true));
+                if($expectInvalidUser) {
+                    throw new \Exception('Some error!');
+                }
 
-                    return $mockUser;
-                }));
-        }
+                $mockUser->expects($this->once())
+                    ->method('isValidPassword')->will($this->returnValue(true));
+
+                return $mockUser;
+            }));
 
         $this->mockAccessProvider->expects($expectedToSucceed? $this->once() : $this->never())->method('generateAccessCredentials')
             ->will($this->returnCallback(function($client, $user, $ip) use ($expectedIp, $mockClient, $mockUser) {
@@ -179,7 +198,7 @@ class AuthTest extends WebTestCase {
             $redirectTargetUrl = $response->getTargetUrl();
             $this->assertEquals($requestData['redirect_uri'] . '?code=fake_auth_code=', $redirectTargetUrl);
         } else {
-            $this->assertFalse($response->isOk());
+            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
         }
     }
 }

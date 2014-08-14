@@ -70,7 +70,7 @@ class Auth {
                 $accessCredentials = $this->accessProvider->generateAccessCredentials($client, $user, $request->getClientIp());
                 $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
             }
-        } catch (BadRequestException $e) {
+        } catch (\Exception $e) {
             $response = new Response('Error', Response::HTTP_BAD_REQUEST);
         }
 
