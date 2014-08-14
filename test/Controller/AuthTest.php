@@ -31,8 +31,7 @@ class AuthTest extends WebTestCase {
         $this->app = $app;
     }
 
-
-    public function provideAuthenticateActionTestCases(){
+    public function provideSigninActionTestCases() {
         return [
             # test case 0
             [true, [
@@ -68,10 +67,9 @@ class AuthTest extends WebTestCase {
     }
 
     /**
-     * @dataProvider provideAuthenticateActionTestCases
+     * @dataProvider provideSigninActionTestCases
      */
-    public function testAuthenticateAction($expectToSucceed, $requestQuery, $expectedUsername, $expectedPassword) {
-
+    public function testSigninAction($expectToSucceed, $requestQuery, $expectedUsername, $expectedPassword) {
         $app = $this->app;
         $app['soauth.renderer']->expects($expectToSucceed? $this->once() : $this->never())
             ->method('renderSignInForm')->will($this->returnCallback(function($data) use ($requestQuery){
@@ -115,7 +113,7 @@ class AuthTest extends WebTestCase {
         }
     }
 
-    public function provideSigninActionTestCases() {
+    public function provideAuthenticateActionTestCases(){
         return [
             [[
                 'client_id' => 1,
@@ -158,10 +156,9 @@ class AuthTest extends WebTestCase {
     }
 
     /**
-     * @dataProvider provideSigninActionTestCases
+     * @dataProvider provideAuthenticateActionTestCases
      */
-    public function testSigninAction($requestData, array $expectedValidationError = null, $expectInvalidClient = false, $expectInvalidUser = false, $expectAuthProviderException = false) {
-
+    public function testAuthenticateAction($requestData, array $expectedValidationError = null, $expectInvalidClient = false, $expectInvalidUser = false, $expectAuthProviderException = false) {
         $expectedIp = '192.168.192.168';
 
         $expectedToSucceed = !$expectedValidationError && !$expectInvalidClient && !$expectInvalidUser && !$expectAuthProviderException;
@@ -193,7 +190,7 @@ class AuthTest extends WebTestCase {
                 return $mockUser;
             }));
 
-        $this->mockAccessProvider->expects($this->any())->method('generateAccessCredentials')
+        $this->mockAccessProvider->expects($this->any())->method('generate')
             ->will($this->returnCallback(function($client, $user, $ip) use ($expectedIp, $mockClient, $mockUser, $expectAuthProviderException) {
                 $this->assertEquals($expectedIp, $ip);
                 $this->assertEquals($mockClient, $client);

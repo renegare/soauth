@@ -37,7 +37,7 @@ class AccessTest extends WebTestCase {
 
             ['Request made with invalid code', '', null, ['code']],
 
-            ['Exception is thrown by accessProvider::getAccessCredentials', 'fake-auth-code=', null, null, true]
+            ['Exception is thrown by accessProvider::exchange', 'fake-auth-code=', null, null, true]
         ];
     }
 
@@ -49,7 +49,7 @@ class AccessTest extends WebTestCase {
         $expectedSuccess = !$expectedValidationError && !$expectedAccessProviderException;
 
         $this->mockAccessProvider->expects($this->any())
-            ->method('getAccessCredentials')->will($this->returnCallback(function($authCode) use ($expectedAuthCode, $expectedAccessCredentials, $expectedAccessProviderException, $testCaseLabel){
+            ->method('exchange')->will($this->returnCallback(function($authCode) use ($expectedAuthCode, $expectedAccessCredentials, $expectedAccessProviderException, $testCaseLabel){
                 $this->assertEquals($expectedAuthCode, $authCode, $testCaseLabel);
 
                 if($expectedAccessProviderException) {
@@ -94,7 +94,7 @@ class AccessTest extends WebTestCase {
             ['Invalid Request #1', '', null, ['refresh_code']],
             ['Invalid Request #2', null, null, ['refresh_code']],
 
-            ['Exception is thrown by accessProvider::getAccessCredentials', 'fake-refresh-code=', null, null, true]
+            ['Exception is thrown by accessProvider::exchange', 'fake-refresh-code=', null, null, true]
         ];
     }
 

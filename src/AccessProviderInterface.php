@@ -11,14 +11,21 @@ interface AccessProviderInterface {
      * @param $ip string
      * @return CredentialsInterface
      */
-    public function generateAccessCredentials(ClientInterface $client, UserInterface $user, $ip='0.0.0.0');
+    public function generate(ClientInterface $client, UserInterface $user, $ip='0.0.0.0');
 
     /**
      * get access credentials for the given auth code
      * @param $authCode string
      * @return CredentialsInterface
      */
-    public function getAccessCredentials($authCode);
+    public function exchange($authCode);
+
+    /**
+     * get access credentials for the given access code
+     * @param $accessCode string
+     * @return CredentialsInterface
+     */
+    public function get($accessCode);
 
     /**
      * generate a new set of credentials from the old one

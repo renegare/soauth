@@ -14,7 +14,7 @@ use Renegare\Soauth\RendererInterface;
 use Renegare\Soauth\ClientProviderInterface;
 use Renegare\Soauth\UserProviderInterface;
 use Renegare\Soauth\AccessProviderInterface;
-use Renegare\Soauth\BadRequestException;
+use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\AbstractController;
 
 class Auth extends AbstractController {
@@ -48,7 +48,7 @@ class Auth extends AbstractController {
         try {
             $data = $this->getAuthClientIdentifiers($request);
             $response = $this->renderer->renderSignInForm($data);
-        } catch (BadRequestException $e) {
+        } catch (BadDataException $e) {
             $response = new Response('Error', Response::HTTP_BAD_REQUEST);
         }
 
@@ -66,12 +66,13 @@ class Auth extends AbstractController {
             $user = $this->userProvider->loadByUsername($username);
 
             if($user->isValidPassword($password)) {
-                $accessCredentials = $this->accessProvider->generateAccessCredentials($client, $user, $request->getClientIp());
+                $accessCredentials = $this->accessProvider->generate($client, $user, $request->getClientIp());
                 $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
             }
         } catch (\Exception $e) {
             $data = $request->request->all();
-            if($e instanceof BadRequestException) {
+            
+            if($e instanceof BadDataException) {
                 $data['errors'] = $e->getErrors();
             }
 

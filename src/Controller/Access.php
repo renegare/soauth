@@ -10,7 +10,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 use Renegare\Soauth\AccessProviderInterface;
 use Renegare\Soauth\AbstractController;
-use Renegare\Soauth\BadRequestException;
+use Renegare\Soauth\BadDataException;
 
 class Access extends AbstractController {
 
@@ -25,7 +25,7 @@ class Access extends AbstractController {
         try {
             $authCode = $this->getAuthCode($request);
 
-            $credentials = $this->accessProvider->getAccessCredentials($authCode);
+            $credentials = $this->accessProvider->exchange($authCode);
 
             $response = new JsonResponse([
                 'access_code' => $credentials->getAccessCode(),
@@ -35,7 +35,7 @@ class Access extends AbstractController {
         } catch (\Exception $e) {
             $data = [];
 
-            if($e instanceof BadRequestException) {
+            if($e instanceof BadDataException) {
                 $data['errors'] = $e->getErrors();
             }
 
@@ -59,7 +59,7 @@ class Access extends AbstractController {
         } catch (\Exception $e) {
             $data = [];
 
-            if($e instanceof BadRequestException) {
+            if($e instanceof BadDataException) {
                 $data['errors'] = $e->getErrors();
             }
 

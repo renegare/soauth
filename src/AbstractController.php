@@ -41,7 +41,7 @@ abstract class AbstractController implements LoggerAwareInterface, LoggerInterfa
                 $errors[$path] = $violation->getMessage();
             }
 
-            throw new BadRequestException('Invalid request data', $errors);
+            throw new BadDataException($errors, 'Invalid request data');
         }
     }
 }

@@ -2,16 +2,18 @@
 
 namespace Renegare\Soauth;
 
+use Symfony\Component\HttpFoundation\Request;
+
 class BadRequestException extends \RuntimeException {
 
-    protected $errors;
+    protected $request;
 
-    public function __construct ($message = '', array $errors = [], $code = 0, \Exception $previous = NULL) {
-        $this->errors = $errors;
+    public function __construct (Request $request, $message = '', $code = 0, \Exception $previous = NULL) {
+        $this->request = $request;
         parent::__construct($message, $code, $previous);
     }
 
-    public function getErrors() {
-        return $this->errors;
+    public function getRequest() {
+        return $this->request;
     }
 }
