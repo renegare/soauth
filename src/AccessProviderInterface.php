@@ -19,4 +19,11 @@ interface AccessProviderInterface {
      * @return CredentialsInterface
      */
     public function getAccessCredentials($authCode);
+
+    /**
+     * generate a new set of credentials from the old one
+     * @param $refreshCode string
+     * @return CredentialsInterface
+     */
+    public function refresh($refreshCode);
 }

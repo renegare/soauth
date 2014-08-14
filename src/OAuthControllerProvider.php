@@ -41,6 +41,7 @@ class OAuthControllerProvider implements ControllerProviderInterface {
         $controllers->post('', 'soauth.controller.auth:authenticateAction');
 
         $controllers->post('access', 'soauth.controller.access:exchangeAction');
+        $controllers->put('access', 'soauth.controller.access:refreshAction');
 
         return $controllers;
     }

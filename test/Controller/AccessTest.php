@@ -28,8 +28,8 @@ class AccessTest extends WebTestCase {
     public function provideExchangeActionTestCases(){
         return [
             ['Valid request', 'fake-auth-code=', [
-                'access_code' => '',
-                'refresh_code' => '',
+                'access_code' => 'fake-access-code=',
+                'refresh_code' => 'fake-refresh-code=',
                 'expires' => '3600'
             ]],
 
@@ -37,11 +37,7 @@ class AccessTest extends WebTestCase {
 
             ['Request made with invalid code', '', null, ['code']],
 
-            ['Exception is thrown by accessProvider::getAccessCredentials', 'fake-auth-code=', [
-                'access_code' => '',
-                'refresh_code' => '',
-                'expires' => '3600'
-            ], null, true]
+            ['Exception is thrown by accessProvider::getAccessCredentials', 'fake-auth-code=', null, null, true]
         ];
     }
 
@@ -87,18 +83,44 @@ class AccessTest extends WebTestCase {
 
     }
 
-    public function xprovideRefreshActionTestCases() {
+    public function provideRefreshActionTestCases() {
         return [
-            []
+            ['Valid Request', 'fake-refresh-code=', [
+                'access_code' => 'new-fake-access-code=',
+                'refresh_code' => 'new-fake-refresh-code=',
+                'expires' => '3600'
+            ]]
         ];
     }
 
     /**
      * @dataProvider provideRefreshActionTestCases
      */
-    public function xtestRefreshAction() {
+    public function testRefreshAction($testCaseLabel, $expectedRefreshCode, $expectedAccessCredentials = null) {
+
+        $this->mockAccessProvider->expects($this->once())
+            ->method('refresh')->will($this->returnCallback(function($refreshCode) use ($expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel){
+                $this->assertEquals($expectedRefreshCode, $refreshCode, $testCaseLabel);
+
+                // if($expectedAccessProviderException) {
+                //     throw new \Exception('Some error!');
+                // }
+
+                $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
+                $mockCredentials->expects($this->once())->method('getAccessCode')->will($this->returnValue($expectedAccessCredentials['access_code']));
+                $mockCredentials->expects($this->once())->method('getRefreshCode')->will($this->returnValue($expectedAccessCredentials['refresh_code']));
+                $mockCredentials->expects($this->once())->method('getExpires')->will($this->returnValue($expectedAccessCredentials['expires']));
+
+                return $mockCredentials;
+            }));
+
         $client = $this->createClient([], $this->app);
         $client->followRedirects(false);
-        $client->request('PUT', 'access', $expectedAuthCode? ['code' => $expectedAuthCode] : []);
+        $client->request('PUT', 'access', $expectedRefreshCode? ['refresh_code' => $expectedRefreshCode] : []);
+
+        $response = $client->getResponse();
+        $responseData = json_decode($response->getContent(), true);
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $testCaseLabel);
+        $this->assertEquals($expectedAccessCredentials, $responseData, $testCaseLabel);
     }
 }

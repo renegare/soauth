@@ -45,6 +45,21 @@ class Access extends AbstractController {
         return $response;
     }
 
+    public function refreshAction(Request $request) {
+
+        $refreshCode = $request->request->get('refresh_code');
+
+        $credentials = $this->accessProvider->refresh($refreshCode);
+
+        $response = new JsonResponse([
+            'access_code' => $credentials->getAccessCode(),
+            'refresh_code' => $credentials->getRefreshCode(),
+            'expires' => $credentials->getExpires()
+        ]);
+
+        return $response;
+    }
+
     protected function getAuthCode(Request $request) {
         $constraints = ['code' => [new NotBlank]];
 
