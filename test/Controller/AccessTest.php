@@ -70,7 +70,7 @@ class AccessTest extends WebTestCase {
 
         $client = $this->createClient([], $this->app);
         $client->followRedirects(false);
-        $client->request('GET', 'access', $expectedAuthCode? ['code' => $expectedAuthCode] : []);
+        $client->request('POST', 'access', $expectedAuthCode? ['code' => $expectedAuthCode] : []);
 
         $response = $client->getResponse();
         $responseData = json_decode($response->getContent(), true);
@@ -85,5 +85,20 @@ class AccessTest extends WebTestCase {
             }
         }
 
+    }
+
+    public function xprovideRefreshActionTestCases() {
+        return [
+            []
+        ];
+    }
+
+    /**
+     * @dataProvider provideRefreshActionTestCases
+     */
+    public function xtestRefreshAction() {
+        $client = $this->createClient([], $this->app);
+        $client->followRedirects(false);
+        $client->request('PUT', 'access', $expectedAuthCode? ['code' => $expectedAuthCode] : []);
     }
 }
