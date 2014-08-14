@@ -46,16 +46,25 @@ class Access extends AbstractController {
     }
 
     public function refreshAction(Request $request) {
+        try {
+            $refreshCode = $this->getRefreshCode($request);
 
-        $refreshCode = $request->request->get('refresh_code');
+            $credentials = $this->accessProvider->refresh($refreshCode);
 
-        $credentials = $this->accessProvider->refresh($refreshCode);
+            $response = new JsonResponse([
+                'access_code' => $credentials->getAccessCode(),
+                'refresh_code' => $credentials->getRefreshCode(),
+                'expires' => $credentials->getExpires()
+            ]);
+        } catch (\Exception $e) {
+            $data = [];
 
-        $response = new JsonResponse([
-            'access_code' => $credentials->getAccessCode(),
-            'refresh_code' => $credentials->getRefreshCode(),
-            'expires' => $credentials->getExpires()
-        ]);
+            if($e instanceof BadRequestException) {
+                $data['errors'] = $e->getErrors();
+            }
+
+            $response = new JsonResponse($data, Response::HTTP_BAD_REQUEST);
+        }
 
         return $response;
     }
@@ -68,5 +77,15 @@ class Access extends AbstractController {
         $this->validate($constraints, $data);
 
         return $data['code'];
+    }
+
+    protected function getRefreshCode(Request $request) {
+        $constraints = ['refresh_code' => [new NotBlank]];
+
+        $data = ['refresh_code' => $request->request->get('refresh_code')];
+
+        $this->validate($constraints, $data);
+
+        return $data['refresh_code'];
     }
 }

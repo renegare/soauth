@@ -89,22 +89,29 @@ class AccessTest extends WebTestCase {
                 'access_code' => 'new-fake-access-code=',
                 'refresh_code' => 'new-fake-refresh-code=',
                 'expires' => '3600'
-            ]]
+            ]],
+
+            ['Invalid Request #1', '', null, ['refresh_code']],
+            ['Invalid Request #2', null, null, ['refresh_code']],
+
+            ['Exception is thrown by accessProvider::getAccessCredentials', 'fake-refresh-code=', null, null, true]
         ];
     }
 
     /**
      * @dataProvider provideRefreshActionTestCases
      */
-    public function testRefreshAction($testCaseLabel, $expectedRefreshCode, $expectedAccessCredentials = null) {
+    public function testRefreshAction($testCaseLabel, $expectedRefreshCode, $expectedAccessCredentials = null, array $expectedValidationError = null, $expectedAccessProviderException = false) {
 
-        $this->mockAccessProvider->expects($this->once())
-            ->method('refresh')->will($this->returnCallback(function($refreshCode) use ($expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel){
+        $expectedSuccess = !$expectedValidationError && !$expectedAccessProviderException;
+
+        $this->mockAccessProvider->expects($expectedValidationError? $this->never() : $this->once())
+            ->method('refresh')->will($this->returnCallback(function($refreshCode) use ($expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel, $expectedAccessProviderException){
                 $this->assertEquals($expectedRefreshCode, $refreshCode, $testCaseLabel);
 
-                // if($expectedAccessProviderException) {
-                //     throw new \Exception('Some error!');
-                // }
+                if($expectedAccessProviderException) {
+                    throw new \Exception('Some error!');
+                }
 
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
                 $mockCredentials->expects($this->once())->method('getAccessCode')->will($this->returnValue($expectedAccessCredentials['access_code']));
@@ -120,7 +127,15 @@ class AccessTest extends WebTestCase {
 
         $response = $client->getResponse();
         $responseData = json_decode($response->getContent(), true);
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $testCaseLabel);
-        $this->assertEquals($expectedAccessCredentials, $responseData, $testCaseLabel);
+
+        if($expectedSuccess) {
+            $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $testCaseLabel);
+            $this->assertEquals($expectedAccessCredentials, $responseData, $testCaseLabel);
+        } else {
+            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode(), $testCaseLabel);
+            if($expectedValidationError) {
+                $this->assertEquals($expectedValidationError, array_keys($responseData['errors']), $testCaseLabel);
+            }
+        }
     }
 }
