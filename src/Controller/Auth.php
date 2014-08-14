@@ -6,8 +6,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use Symfony\Component\Validator\Validation;
-use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -120,28 +118,5 @@ class Auth extends AbstractController {
         $this->validate($constraints, $data);
 
         return $data;
-    }
-
-    protected function validate(array $constraints, array $data) {
-
-        $validator = Validation::createValidatorBuilder()
-            ->setApiVersion(Validation::API_VERSION_2_4)
-            ->getValidator();
-
-        $violations = $validator->validateValue($data, new Collection([
-            'fields' => $constraints,
-            'allowExtraFields' => false,
-            'allowMissingFields' => false
-        ]));
-
-        if(count($violations)) {
-            $errors = [];
-            foreach($violations as $violation) {
-                $path = preg_replace('/[\[\]]/', '', $violation->getPropertyPath());
-                $errors[$path] = $violation->getMessage();
-            }
-
-            throw new BadRequestException('Invalid authentication request', $errors);
-        }
     }
 }

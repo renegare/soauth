@@ -18,40 +18,72 @@ class AccessTest extends WebTestCase {
      * mock out all dependencies ... cause we can!
      */
     public function setUp() {
-        // $this->mockClientProvider = $this->getMock('Renegare\Soauth\ClientProviderInterface');
-        // $this->mockUserProvider = $this->getMock('Renegare\Soauth\UserProviderInterface');
-        // $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
-        // $this->mockRenderer = $this->getMock('Renegare\Soauth\RendererInterface');
-
+        $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
         $app = $this->createApplication(true);
-        // $app['soauth.client.provider'] = $this->mockClientProvider;
-        // $app['soauth.user.provider'] = $this->mockUserProvider;
-        // $app['soauth.access.provider'] = $this->mockAccessProvider;
-        // $app['soauth.renderer'] = $this->mockRenderer;
+        $app['soauth.access.provider'] = $this->mockAccessProvider;
         $this->app = $app;
     }
 
 
     public function provideExchangeActionTestCases(){
         return [
-            []
+            ['Valid request', 'fake-auth-code=', [
+                'access_code' => '',
+                'refresh_code' => '',
+                'expires' => '3600'
+            ]],
+
+            ['Request made with no code', null, null, ['code']],
+
+            ['Request made with invalid code', '', null, ['code']],
+
+            ['Exception is thrown by accessProvider::getAccessCredentials', 'fake-auth-code=', [
+                'access_code' => '',
+                'refresh_code' => '',
+                'expires' => '3600'
+            ], null, true]
         ];
     }
 
     /**
      * @dataProvider provideExchangeActionTestCases
      */
-    public function testExchangeAction() {
-        $requestQuery = [
-            'code' => 'fake-auth-code='
-        ];
+    public function testExchangeAction($testCaseLabel, $expectedAuthCode, array $expectedAccessCredentials = null, array $expectedValidationError = null, $expectedAccessProviderException = false) {
+
+        $expectedSuccess = !$expectedValidationError && !$expectedAccessProviderException;
+
+        $this->mockAccessProvider->expects($this->any())
+            ->method('getAccessCredentials')->will($this->returnCallback(function($authCode) use ($expectedAuthCode, $expectedAccessCredentials, $expectedAccessProviderException, $testCaseLabel){
+                $this->assertEquals($expectedAuthCode, $authCode, $testCaseLabel);
+
+                if($expectedAccessProviderException) {
+                    throw new \Exception('Some error!');
+                }
+
+                $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
+                $mockCredentials->expects($this->once())->method('getAccessCode')->will($this->returnValue($expectedAccessCredentials['access_code']));
+                $mockCredentials->expects($this->once())->method('getRefreshCode')->will($this->returnValue($expectedAccessCredentials['refresh_code']));
+                $mockCredentials->expects($this->once())->method('getExpires')->will($this->returnValue($expectedAccessCredentials['expires']));
+
+                return $mockCredentials;
+            }));
 
         $client = $this->createClient([], $this->app);
         $client->followRedirects(false);
-        $client->request('GET', 'access', $requestQuery);
+        $client->request('GET', 'access', $expectedAuthCode? ['code' => $expectedAuthCode] : []);
 
         $response = $client->getResponse();
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $responseData = json_decode($response->getContent(), true);
+
+        if($expectedSuccess) {
+            $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $testCaseLabel);
+            $this->assertEquals($expectedAccessCredentials, $responseData, $testCaseLabel);
+        } else {
+            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode(), $testCaseLabel);
+            if($expectedValidationError) {
+                $this->assertEquals($expectedValidationError, array_keys($responseData['errors']), $testCaseLabel);
+            }
+        }
 
     }
 }

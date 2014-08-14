@@ -21,6 +21,7 @@ class OAuthControllerProvider implements ControllerProviderInterface {
             $controller->setClientProvider($app['soauth.client.provider']);
             $controller->setUserProvider($app['soauth.user.provider']);
             $controller->setAccessProvider($app['soauth.access.provider']);
+
             return $controller;
         });
 
@@ -31,6 +32,8 @@ class OAuthControllerProvider implements ControllerProviderInterface {
                 $controller->setLogger($app['logger']);
             }
 
+            $controller->setAccessProvider($app['soauth.access.provider']);
+            
             return $controller;
         });
 
