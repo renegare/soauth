@@ -88,7 +88,7 @@ class AuthTest extends WebTestCase {
 
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
-        $crawler = $client->request('GET', 'auth', $requestQuery);
+        $crawler = $client->request('GET', '/', $requestQuery);
 
         $response = $client->getResponse();
 
@@ -228,7 +228,7 @@ class AuthTest extends WebTestCase {
             }));
 
         $client = $this->createClient(['REMOTE_ADDR' => $expectedIp], $this->app);
-        $crawler = $client->request('POST', 'auth', $requestData);
+        $crawler = $client->request('POST', '/', $requestData);
         $response = $client->getResponse();
 
         if($expectedToSucceed) {
