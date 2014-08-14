@@ -32,7 +32,7 @@ class WebTestCase extends \Silex\WebTestCase {
         return $app;
     }
 
-    private function configureApplication(Application $app) {
+    protected function configureApplication(Application $app) {
         $app->register(new \Silex\Provider\ServiceControllerServiceProvider);
         $app->register(new \Silex\Provider\SecurityServiceProvider);
 
