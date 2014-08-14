@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth\Test\Security;
+namespace Renegare\Soauth\Test;
 
 use Symfony\Component\HttpFoundation\Response;
 use Renegare\Soauth\Test\WebTestCase;

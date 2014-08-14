@@ -34,6 +34,7 @@ class WebTestCase extends \Silex\WebTestCase {
         $app->register($provider);
         $app->mount('/auth', $provider);
 
+        $app['logger'] = $this->getMock('Psr\Log\LoggerInterface');
         return $app;
     }
 
