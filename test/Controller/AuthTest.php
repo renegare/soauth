@@ -54,18 +54,19 @@ class AuthTest extends WebTestCase {
                 ], 'test+1@example.com', 'Password123'],
             # test case 4
             [false, [
-                    'client' => '123ss',
+                    'client_id' => '123ss',
                     'redirect_uri' => 'http://external.client.com/redirect/path'
                 ], 'test+1@example.com', 'Password123'],
             # test case 5
             [false, [
-                    'client' => 1,
+                    'client_id' => 1,
                     'redirect_uri' => 'kjdskjsdjk23'
                 ], 'test+1@example.com', 'Password123'],
             # test case 6
             [false, [], 'test+1@example.com', 'Password123']
         ];
     }
+
     /**
      * @dataProvider provideAuthenticateActionTestCases
      */
@@ -114,12 +115,28 @@ class AuthTest extends WebTestCase {
         }
     }
 
-    public function testSigninAction() {
-        $expectedClientId = 1;
-        $expectedRedirectTarget = 'http://external.client.com/redirect/path';
-        $expectedUsername = 'test+1@example.com';
-        $expectedPassword = 'Password123';
-        $expectedIp = '192.168.192.168';
+    public function provideSigninActionTestCases() {
+        return [
+            [true, [
+                'client_id' => 1,
+                'redirect_uri' => 'http://external.client.com/redirect/path',
+                'username' => 'test+1@example.com',
+                'password' => 'Password123'
+            ], '192.168.192.168'],
+
+            [false, [
+                'client_id' => '1sss',
+                'redirect_uri' => 'http://external.client.com/redirect/path',
+                'username' => 'test+1@example.com',
+                'password' => 'Password123'
+            ], '192.168.192.168']
+        ];
+    }
+
+    /**
+     * @dataProvider provideSigninActionTestCases
+     */
+    public function testSigninAction($expectedToSucceed, $requestData, $expectedIp) {
 
         $mockClient = $this->getMock('Renegare\Soauth\ClientInterface');
         $mockUser = $this->getMock('Renegare\Soauth\UserInterface');
@@ -130,17 +147,19 @@ class AuthTest extends WebTestCase {
                 return $mockClient;
             }));
 
-        $this->mockUserProvider->expects($this->any())->method('loadByUsername')
-            ->will($this->returnCallback(function($username) use ($mockUser){
-                $this->assertEquals('test+1@example.com', $username);
+        if($expectedToSucceed) {
+            $this->mockUserProvider->expects($this->once())->method('loadByUsername')
+                ->will($this->returnCallback(function($username) use ($mockUser, $requestData){
+                    $this->assertEquals($requestData['username'], $username);
 
-                $mockUser->expects($this->once())
-                    ->method('isValidPassword')->will($this->returnValue(true));
+                    $mockUser->expects($this->once())
+                        ->method('isValidPassword')->will($this->returnValue(true));
 
-                return $mockUser;
-            }));
+                    return $mockUser;
+                }));
+        }
 
-        $this->mockAccessProvider->expects($this->any())->method('generateAccessCredentials')
+        $this->mockAccessProvider->expects($expectedToSucceed? $this->once() : $this->never())->method('generateAccessCredentials')
             ->will($this->returnCallback(function($client, $user, $ip) use ($expectedIp, $mockClient, $mockUser) {
                 $this->assertEquals($expectedIp, $ip);
                 $this->assertEquals($mockClient, $client);
@@ -152,15 +171,15 @@ class AuthTest extends WebTestCase {
             }));
 
         $client = $this->createClient(['REMOTE_ADDR' => $expectedIp], $this->app);
-        $client->request('POST', 'auth', [
-            'username' => $expectedUsername,
-            'password' => $expectedPassword,
-            'client_id' => $expectedClientId,
-            'redirect_uri' => $expectedRedirectTarget
-        ]);
+        $client->request('POST', 'auth', $requestData);
         $response = $client->getResponse();
-        $this->assertEquals(302, $response->getStatusCode());
-        $redirectTargetUrl = $response->getTargetUrl();
-        $this->assertEquals($expectedRedirectTarget . '?code=fake_auth_code=', $redirectTargetUrl);
+
+        if($expectedToSucceed) {
+            $this->assertEquals(Response::HTTP_FOUND, $response->getStatusCode());
+            $redirectTargetUrl = $response->getTargetUrl();
+            $this->assertEquals($requestData['redirect_uri'] . '?code=fake_auth_code=', $redirectTargetUrl);
+        } else {
+            $this->assertFalse($response->isOk());
+        }
     }
 }

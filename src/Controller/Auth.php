@@ -57,17 +57,21 @@ class Auth {
     }
 
     public function authenticateAction(Request $request) {
-        $data = $this->getAuthCredentials($request);
+        try {
+            $data = $this->getAuthCredentials($request);
 
-        // exports $client_id, $redirect_uri, $username and $password
-        extract($data);
+            // exports $client_id, $redirect_uri, $username and $password
+            extract($data);
 
-        $client = $this->clientProvider->load($client_id);
-        $user = $this->userProvider->loadByUsername($username);
+            $client = $this->clientProvider->load($client_id);
+            $user = $this->userProvider->loadByUsername($username);
 
-        if($user->isValidPassword($password)) {
-            $accessCredentials = $this->accessProvider->generateAccessCredentials($client, $user, $request->getClientIp());
-            $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
+            if($user->isValidPassword($password)) {
+                $accessCredentials = $this->accessProvider->generateAccessCredentials($client, $user, $request->getClientIp());
+                $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
+            }
+        } catch (BadRequestException $e) {
+            $response = new Response('Error', Response::HTTP_BAD_REQUEST);
         }
 
         return $response;
@@ -75,25 +79,53 @@ class Auth {
 
     protected function getAuthClientIdentifiers(Request $request) {
 
-        $constraints = new Collection([
-            'fields' => [
-                'client_id' => [new NotBlank, new Regex(['pattern' => '/\d+/'])],
+        $constraints = [
+                'client_id' => [new NotBlank, new Regex(['pattern' => '/^\d+$/'])],
                 'redirect_uri' => [new NotBlank, new Url]
-            ],
-            'allowExtraFields' => false,
-            'allowMissingFields' => false
-        ]);
-
-        $validator = Validation::createValidatorBuilder()
-            ->setApiVersion(Validation::API_VERSION_2_4)
-            ->getValidator();
+            ];
 
         $data = [
             'client_id' => $request->query->get('client_id'),
             'redirect_uri' => $request->query->get('redirect_uri')
         ];
 
-        $violations = $validator->validateValue($data, $constraints);
+        $this->validate($constraints, $data);
+
+        return $data;
+    }
+
+    protected function getAuthCredentials(Request $request) {
+
+        $constraints = [
+            'client_id' => [new NotBlank, new Regex(['pattern' => '/^\d+$/'])],
+            'redirect_uri' => [new NotBlank, new Url],
+            'username' => [new NotBlank],
+            'password' => [new NotBlank]
+        ];
+
+        $data = [
+            'client_id' => $request->request->get('client_id'),
+            'redirect_uri' => $request->request->get('redirect_uri'),
+            'username' => $request->request->get('username'),
+            'password' => $request->request->get('password')
+        ];
+
+        $this->validate($constraints, $data);
+
+        return $data;
+    }
+
+    protected function validate(array $constraints, array $data) {
+
+        $validator = Validation::createValidatorBuilder()
+            ->setApiVersion(Validation::API_VERSION_2_4)
+            ->getValidator();
+
+        $violations = $validator->validateValue($data, new Collection([
+            'fields' => $constraints,
+            'allowExtraFields' => false,
+            'allowMissingFields' => false
+        ]));
 
         if(count($violations)) {
             $errors = [];
@@ -104,21 +136,5 @@ class Auth {
 
             throw new BadRequestException('Invalid authentication request', $errors);
         }
-
-        return $data;
-    }
-
-    protected function getAuthCredentials(Request $request) {
-        $clientId = $request->request->get('client_id');
-        $redirectUri = $request->request->get('redirect_uri');
-        $username = $request->request->get('username');
-        $password = $request->request->get('password');
-
-        return [
-            'client_id' => $clientId,
-            'redirect_uri' => $redirectUri,
-            'username' => $username,
-            'password' => $password
-        ];
     }
 }
