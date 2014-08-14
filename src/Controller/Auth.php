@@ -71,7 +71,13 @@ class Auth {
                 $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
             }
         } catch (\Exception $e) {
-            $response = new Response('Error', Response::HTTP_BAD_REQUEST);
+            $data = $request->request->all();
+            if($e instanceof BadRequestException) {
+                $data['errors'] = $e->getErrors();
+            }
+
+            $content = $this->renderer->renderSignInForm($data);
+            $response = new Response($content, Response::HTTP_BAD_REQUEST);
         }
 
         return $response;
