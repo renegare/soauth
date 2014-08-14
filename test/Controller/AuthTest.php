@@ -84,23 +84,23 @@ class AuthTest extends WebTestCase {
         ], $form->getPhpValues());
     }
 
-    public function xtestSigninAction() {
-        $this->markTestIncomplete();
+    public function testSigninAction() {
+        $expectedClientId = 1;
+        $expectedRedirectTarget = 'http://external.client.com/redirect/path';
+        $expectedUsername = 'test+1@example.com';
+        $expectedPassword = 'Password123';
+        $expectedIp = '192.168.192.168';
 
         $mockClient = $this->getMock('Renegare\Soauth\ClientInterface');
         $mockUser = $this->getMock('Renegare\Soauth\UserInterface');
 
-        $mockClientProvider = $this->getMock('Renegare\Soauth\ClientProviderInterface');
-
-        $mockClientProvider->expects($this->any())->method('load')
+        $this->mockClientProvider->expects($this->any())->method('load')
             ->will($this->returnCallback(function($id) use ($mockClient){
                 $this->assertEquals(1, $id);
                 return $mockClient;
             }));
 
-
-
-        $mockUserProvider->expects($this->any())->method('loadByUsername')
+        $this->mockUserProvider->expects($this->any())->method('loadByUsername')
             ->will($this->returnCallback(function($username) use ($mockUser){
                 $this->assertEquals('test+1@example.com', $username);
 
@@ -110,11 +110,9 @@ class AuthTest extends WebTestCase {
                 return $mockUser;
             }));
 
-
-
-        $mockAccessProvider->expects($this->any())->method('generateAccessCredentials')
-            ->will($this->returnCallback(function($client, $user, $ip) use ($mockClient, $mockUser) {
-                $this->assertEquals('192.168.192.168', $ip);
+        $this->mockAccessProvider->expects($this->any())->method('generateAccessCredentials')
+            ->will($this->returnCallback(function($client, $user, $ip) use ($expectedIp, $mockClient, $mockUser) {
+                $this->assertEquals($expectedIp, $ip);
                 $this->assertEquals($mockClient, $client);
                 $this->assertEquals($mockUser, $user);
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
@@ -123,12 +121,16 @@ class AuthTest extends WebTestCase {
                 return $mockCredentials;
             }));
 
-        /*
-        $client->submit($form);
+        $client = $this->createClient(['REMOTE_ADDR' => $expectedIp], $this->app);
+        $client->request('POST', 'auth', [
+            'username' => $expectedUsername,
+            'password' => $expectedPassword,
+            'client_id' => $expectedClientId,
+            'redirect_uri' => $expectedRedirectTarget
+        ]);
         $response = $client->getResponse();
         $this->assertEquals(302, $response->getStatusCode());
         $redirectTargetUrl = $response->getTargetUrl();
         $this->assertEquals($expectedRedirectTarget . '?code=fake_auth_code=', $redirectTargetUrl);
-        */
     }
 }
