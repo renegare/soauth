@@ -23,9 +23,6 @@ class AuthTest extends WebTestCase {
         $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
         $this->mockRenderer = $this->getMock('Renegare\Soauth\RendererInterface');
 
-        // $this->mockClient = $this->getMock('Renegare\Soauth\ClientInterface');
-        // $this->mockUser = $this->getMock('Renegare\Soauth\UserInterface');
-
         $app = $this->createApplication(true);
         $app['soauth.client.provider'] = $this->mockClientProvider;
         $app['soauth.user.provider'] = $this->mockUserProvider;
@@ -34,19 +31,50 @@ class AuthTest extends WebTestCase {
         $this->app = $app;
     }
 
-    public function testAuthenticateAction() {
-        $expectedClientId = 1;
-        $expectedRedirectTarget = 'http://external.client.com/redirect/path';
-        $expectedUsername = 'test+1@example.com';
-        $expectedPassword = 'Password123';
+
+    public function provideAuthenticateActionTestCases(){
+        return [
+            # test case 0
+            [true, [
+                    'client_id' => 1,
+                    'redirect_uri' => 'http://external.client.com/redirect/path'
+                ], 'test+1@example.com', 'Password123'],
+            # test case 1
+            [true, [
+                    'client_id' => '1',
+                    'redirect_uri' => 'http://external.client.com/redirect/path'
+                ], 'test+1@example.com', 'Password123'],
+            # test case 2
+            [false, [
+                    'redirect_uri' => 'http://external.client.com/redirect/path'
+                ], 'test+1@example.com', 'Password123'],
+            # test case 3
+            [false, [
+                    'client' => 2
+                ], 'test+1@example.com', 'Password123'],
+            # test case 4
+            [false, [
+                    'client' => '123ss',
+                    'redirect_uri' => 'http://external.client.com/redirect/path'
+                ], 'test+1@example.com', 'Password123'],
+            # test case 5
+            [false, [
+                    'client' => 1,
+                    'redirect_uri' => 'kjdskjsdjk23'
+                ], 'test+1@example.com', 'Password123'],
+            # test case 6
+            [false, [], 'test+1@example.com', 'Password123']
+        ];
+    }
+    /**
+     * @dataProvider provideAuthenticateActionTestCases
+     */
+    public function testAuthenticateAction($expectToSucceed, $requestQuery, $expectedUsername, $expectedPassword) {
 
         $app = $this->app;
-        $app['soauth.renderer']->expects($this->once())
-            ->method('renderSignInForm')->will($this->returnCallback(function($data) use ($expectedClientId, $expectedRedirectTarget){
-                $this->assertEquals([
-                    'redirect_uri' => $expectedRedirectTarget,
-                    'client_id' => $expectedClientId
-                ], $data);
+        $app['soauth.renderer']->expects($expectToSucceed? $this->once() : $this->never())
+            ->method('renderSignInForm')->will($this->returnCallback(function($data) use ($requestQuery){
+                $this->assertEquals($requestQuery, $data);
 
                 return '<form method="post">
     <input type="text" name="username" />
@@ -59,29 +87,31 @@ class AuthTest extends WebTestCase {
 
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
-        $crawler = $client->request('GET', 'auth', [
-            'client_id' => $expectedClientId,
-            'redirect_uri' => $expectedRedirectTarget
-        ]);
+        $crawler = $client->request('GET', 'auth', $requestQuery);
 
         $response = $client->getResponse();
-        $content = $response->getContent();
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
 
-        $formButton = $crawler->selectButton('Sign-in');
-        $this->assertCount(1, $formButton, $content);
+        if($expectToSucceed) {
+            $content = $response->getContent();
+            $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
 
-        $form = $formButton->form([
-            'username' => $expectedUsername,
-            'password' => $expectedPassword
-        ]);
+            $formButton = $crawler->selectButton('Sign-in');
+            $this->assertCount(1, $formButton, $content);
 
-        $this->assertEquals([
-            'username' => $expectedUsername,
-            'password' => $expectedPassword,
-            'client_id' => $expectedClientId,
-            'redirect_uri' => $expectedRedirectTarget
-        ], $form->getPhpValues());
+            $form = $formButton->form([
+                'username' => $expectedUsername,
+                'password' => $expectedPassword
+            ]);
+
+            $this->assertEquals([
+                'username' => $expectedUsername,
+                'password' => $expectedPassword,
+                'client_id' => $requestQuery['client_id'],
+                'redirect_uri' => $requestQuery['redirect_uri']
+            ], $form->getPhpValues());
+        } else {
+            $this->assertFalse($response->isOk());
+        }
     }
 
     public function testSigninAction() {

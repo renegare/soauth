@@ -3,12 +3,20 @@
 namespace Renegare\Soauth\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Constraints\Collection;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Url;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 use Renegare\Soauth\RendererInterface;
 use Renegare\Soauth\ClientProviderInterface;
 use Renegare\Soauth\UserProviderInterface;
 use Renegare\Soauth\AccessProviderInterface;
+use Renegare\Soauth\BadRequestException;
 
 class Auth {
 
@@ -38,8 +46,14 @@ class Auth {
     }
 
     public function signinAction(Request $request) {
-        $data = $this->getAuthClientIdentifiers($request);
-        return $this->renderer->renderSignInForm($data);
+        try {
+            $data = $this->getAuthClientIdentifiers($request);
+            $response = $this->renderer->renderSignInForm($data);
+        } catch (BadRequestException $e) {
+            $response = new Response('Error', Response::HTTP_BAD_REQUEST);
+        }
+
+        return $response;
     }
 
     public function authenticateAction(Request $request) {
@@ -60,13 +74,38 @@ class Auth {
     }
 
     protected function getAuthClientIdentifiers(Request $request) {
-        $clientId = $request->query->get('client_id');
-        $redirectUri = $request->query->get('redirect_uri');
 
-        return [
-            'client_id' => $clientId,
-            'redirect_uri' => $redirectUri
+        $constraints = new Collection([
+            'fields' => [
+                'client_id' => [new NotBlank, new Regex(['pattern' => '/\d+/'])],
+                'redirect_uri' => [new NotBlank, new Url]
+            ],
+            'allowExtraFields' => false,
+            'allowMissingFields' => false
+        ]);
+
+        $validator = Validation::createValidatorBuilder()
+            ->setApiVersion(Validation::API_VERSION_2_4)
+            ->getValidator();
+
+        $data = [
+            'client_id' => $request->query->get('client_id'),
+            'redirect_uri' => $request->query->get('redirect_uri')
         ];
+
+        $violations = $validator->validateValue($data, $constraints);
+
+        if(count($violations)) {
+            $errors = [];
+            foreach($violations as $violation) {
+                $path = preg_replace('/[\[\]]/', '', $violation->getPropertyPath());
+                $errors[$path] = $violation->getMessage();
+            }
+
+            throw new BadRequestException('Invalid authentication request', $errors);
+        }
+
+        return $data;
     }
 
     protected function getAuthCredentials(Request $request) {
