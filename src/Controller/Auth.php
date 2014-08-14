@@ -20,23 +20,11 @@ class Auth extends AbstractController {
 
     /** @var RendererInterface */
     protected $renderer;
-    /** @var ClientProviderInterface */
-    protected $clientProvider;
-    /** @var UserProviderInterface */
-    protected $userProvider;
     /** @var AccessProviderInterface */
     protected $accessProvider;
 
     public function setRenderer(RendererInterface $renderer) {
         $this->renderer = $renderer;
-    }
-
-    public function setUserProvider(UserProviderInterface $userProvider) {
-        $this->userProvider = $userProvider;
-    }
-
-    public function setClientProvider(ClientProviderInterface $clientProvider) {
-        $this->clientProvider = $clientProvider;
     }
 
     public function setAccessProvider(AccessProviderInterface $accessProvider) {
