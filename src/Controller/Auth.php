@@ -32,16 +32,23 @@ class Auth extends AbstractController {
     }
 
     public function signinAction(Request $request) {
-        $this->info('> Sign in request');
+        $this->info('> Sign in request', ['request' => $request]);
         try {
             $data = $this->getAuthClientIdentifiers($request);
             $response = $this->renderer->renderSignInForm($data);
+        } catch (BadDataException $e) {
+            $this->error('Bad Data Exception: ' . $e->getMessage(), ['errors' => $e->getErrors(), 'exception' => $e]);
+            $response = $this->getBadRequestResponse();
         } catch (SoauthException $e) {
-            $this->error('Error: ' . $e->getMessage(), ['exception' => $e]);
-            $response = new Response('Error', Response::HTTP_BAD_REQUEST);
+            $this->error('Soauth Exception: ' . $e->getMessage(), ['exception' => $e]);
+            $response = $this->getBadRequestResponse();
         }
 
         return $response;
+    }
+
+    protected function getBadRequestResponse($message = 'Error') {
+        return new Response($message, Response::HTTP_BAD_REQUEST);
     }
 
     public function authenticateAction(Request $request) {

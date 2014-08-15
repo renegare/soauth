@@ -19,7 +19,7 @@ class OAuthFlowConcreteTest extends WebtestCase {
         $this->mockRenderer->expects($this->any())
             ->method('renderSignInForm')->will($this->returnCallback(function($data) {
                 return '<form method="post">
-    <input type="text" name="username" value="'. (isset($data['username'])? $data['username'] : $data['username']) .'"/>
+    <input type="text" name="username" value="'. (isset($data['username'])? $data['username'] : '') .'"/>
     <input type="password" name="password" />
     <input type="hidden" name="redirect_uri" value="'. $data['redirect_uri'] .'" />
     <input type="hidden" name="client_id" value="'. $data['client_id'] .'" />
@@ -29,12 +29,12 @@ class OAuthFlowConcreteTest extends WebtestCase {
     }
 
     public function testAuthenticate() {
-        $app = $this->createApplication();
+        $app = $this->createApplication(true);
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
         $crawler = $client->request('GET', '/auth/', [
             'client_id' => '1',
-            'redirect_id' => 'http://client.com/cb'
+            'redirect_uri' => 'http://client.com/cb'
         ]);
 
         $response = $client->getResponse();
