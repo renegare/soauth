@@ -33,14 +33,19 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
         $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, time(), $ip));
         $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
-        
-        return new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime);
+
+        $credentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime);
+        $this->storage->save($credentials);
+
+        return $credentials;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function exchange($authCode) {}
+    public function exchange($authCode) {
+        return $this->storage->getAuthCodeCredentials($authCode);
+    }
 
     /**
      * {@inheritdoc}

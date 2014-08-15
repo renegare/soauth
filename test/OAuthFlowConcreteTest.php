@@ -24,6 +24,7 @@ class OAuthFlowConcreteTest extends WebtestCase {
      */
     public function testAuthenticate($expectToSucceed, $clientId, $redirectUri, $username, $password) {
 
+        // user flow
         $app = $this->createApplication(true);
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
@@ -46,6 +47,15 @@ class OAuthFlowConcreteTest extends WebtestCase {
         $this->assertEquals(Response::HTTP_FOUND, $response->getStatusCode());
         $redirectTargetUrl = $response->getTargetUrl();
         $this->assertContains('http://client.com/cb' . '?code', $redirectTargetUrl);
+
+        // server flow (exchange for access code)
+        $code = explode('?code=', $redirectTargetUrl)[1];
+        $client->request('POST', '/auth/access', ['code' => $code]);
+        $response = $client->getResponse();
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $credentials = json_decode($response->getContent());
+
+        // print_r($credentials); die;
     }
 
     public function testRefresh() {

@@ -48,15 +48,6 @@ class Auth extends AbstractController {
         return $response;
     }
 
-    protected function getBadRequestResponse($content = 'Error') {
-        return new Response($content, Response::HTTP_BAD_REQUEST);
-    }
-
-    protected function getBadFormRequestResponse($data = []) {
-        $content = $this->renderer->renderSignInForm($data);
-        return $this->getBadRequestResponse($content);
-    }
-
     public function authenticateAction(Request $request) {
         $data = $request->request->all();
         try {
@@ -76,12 +67,20 @@ class Auth extends AbstractController {
             $response = $this->getBadFormRequestResponse($data);
         }
 
-        $this->info('< Response', ['status_code' => $response->getStatusCode()]);
+        $this->info('< Response', ['status_code' => $response->getStatusCode(), 'target' => $response instanceOf RedirectResponse ? $response->getTargetUrl() : null]);
         return $response;
     }
 
-    protected function getAuthClientIdentifiers(Request $request) {
+    protected function getBadRequestResponse($content = 'Error') {
+        return new Response($content, Response::HTTP_BAD_REQUEST);
+    }
 
+    protected function getBadFormRequestResponse($data = []) {
+        $content = $this->renderer->renderSignInForm($data);
+        return $this->getBadRequestResponse($content);
+    }
+
+    protected function getAuthClientIdentifiers(Request $request) {
         $constraints = [
                 'client_id' => [new NotBlank, new Regex(['pattern' => '/^\d+$/'])],
                 'redirect_uri' => [new NotBlank, new Url]
@@ -98,7 +97,6 @@ class Auth extends AbstractController {
     }
 
     protected function getAuthCredentials(Request $request) {
-
         $constraints = [
             'client_id' => [new NotBlank, new Regex(['pattern' => '/^\d+$/'])],
             'redirect_uri' => [new NotBlank, new Url],

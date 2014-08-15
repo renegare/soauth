@@ -25,6 +25,7 @@ class Access extends AbstractController {
     public function exchangeAction(Request $request) {
         try {
             $authCode = $this->getAuthCode($request);
+            $this->info('> Exchange request', ['method' => $request->getMethod(), 'auth_code' => $authCode]);
 
             $credentials = $this->accessProvider->exchange($authCode);
 
@@ -42,6 +43,8 @@ class Access extends AbstractController {
 
             $response = new JsonResponse($data, Response::HTTP_BAD_REQUEST);
         }
+
+        $this->info('< Response', ['status_code' => $response->getStatusCode()]);
 
         return $response;
     }
@@ -67,6 +70,8 @@ class Access extends AbstractController {
             $response = new JsonResponse($data, Response::HTTP_BAD_REQUEST);
         }
 
+        $this->info('< Response', ['status_code' => $response->getStatusCode()]);
+        
         return $response;
     }
 

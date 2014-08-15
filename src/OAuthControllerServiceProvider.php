@@ -9,8 +9,9 @@ use Silex\ServiceProviderInterface;
 class OAuthControllerServiceProvider implements ControllerProviderInterface, ServiceProviderInterface {
 
     public function register(Application $app) {
-        $app['security.authentication_listener.factory.soauth'] = $app->protect(function ($name, $options) use ($app) {
+        $app['soauth.test'] = false;
 
+        $app['security.authentication_listener.factory.soauth'] = $app->protect(function ($name, $options) use ($app) {
             $app['security.authentication_provider.'.$name.'.soauth'] = $app->share(function () use ($app, $name) {
                 return null;
             });
@@ -39,7 +40,9 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.access.provider'] = $app->share(function(Application $app){
-            $accessProvider = new AccessProvider($app['soauth.access.storage.handler'], $app['soauth.access.client.provider'], $app['soauth.access.user.provider']);
+            $accessProvider = new AccessProvider($app['soauth.test']? $app['soauth.access.storage.handler.mock'] : $app['soauth.access.storage.handler'], 
+                $app['soauth.access.client.provider'],
+                $app['soauth.access.user.provider']);
 
             if(isset($app['logger']) && $app['logger']) {
                 $accessProvider->setLogger($app['logger']);
@@ -48,8 +51,8 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
             return $accessProvider;
         });
 
-        $app['soauth.access.storage.handler'] = $app->share(function(Application $app){
-            return new AccessStorageHandler();
+        $app['soauth.access.storage.handler.mock'] = $app->share(function(Application $app){
+            return new MockAccessStorageHandler();
         });
 
         $app['soauth.access.client.provider'] = $app->share(function(Application $app){

@@ -27,10 +27,12 @@ class WebTestCase extends \Silex\WebTestCase {
         if($disableExceptionHandler) {
             $app['exception_handler']->disable();
         }
-        $app['debug'] = true;
 
         $this->configureApplication($app);
 
+        $app['debug'] = true;
+        $app['soauth.test'] = true;
+        
         return $app;
     }
 
