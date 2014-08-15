@@ -37,6 +37,28 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
                 'pre_auth'
             );
         });
+
+        $app['soauth.access.provider'] = $app->share(function(Application $app){
+            $accessProvider = new AccessProvider($app['soauth.access.storage.handler'], $app['soauth.access.client.provider'], $app['soauth.access.user.provider']);
+
+            if(isset($app['logger']) && $app['logger']) {
+                $accessProvider->setLogger($app['logger']);
+            }
+
+            return $accessProvider;
+        });
+
+        $app['soauth.access.storage.handler'] = $app->share(function(Application $app){
+            return new AccessStorageHandler();
+        });
+
+        $app['soauth.access.client.provider'] = $app->share(function(Application $app){
+            return new AccessClientProvider();
+        });
+
+        $app['soauth.access.user.provider'] = $app->share(function(Application $app){
+            return new AccessUserProvider();
+        });
     }
 
     public function boot(Application $app) {}

@@ -68,7 +68,7 @@ class AuthTest extends WebTestCase {
      */
     public function testSigninAction($expectToSucceed, $requestQuery, $expectedUsername, $expectedPassword) {
         $app = $this->app;
-        $app['soauth.renderer']->expects($expectToSucceed? $this->once() : $this->never())
+        $this->mockRenderer->expects($expectToSucceed? $this->once() : $this->never())
             ->method('renderSignInForm')->will($this->returnCallback(function($data) use ($requestQuery){
                 $this->assertEquals($requestQuery, $data);
 

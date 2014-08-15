@@ -32,10 +32,12 @@ class Auth extends AbstractController {
     }
 
     public function signinAction(Request $request) {
+        $this->info('> Sign in request');
         try {
             $data = $this->getAuthClientIdentifiers($request);
             $response = $this->renderer->renderSignInForm($data);
         } catch (SoauthException $e) {
+            $this->error('Error: ' . $e->getMessage(), ['exception' => $e]);
             $response = new Response('Error', Response::HTTP_BAD_REQUEST);
         }
 

@@ -10,6 +10,8 @@ use Renegare\Soauth\OAuthControllerServiceProvider;
 
 class WebTestCase extends \Silex\WebTestCase {
 
+    private $mockLogger;
+
     public function createClient(array $server = [], Application $app=null)
     {
         if(!$app) {
@@ -68,7 +70,19 @@ class WebTestCase extends \Silex\WebTestCase {
             return 'Access Granted';
         });
 
-        $app['logger'] = $this->getMock('Psr\Log\LoggerInterface');
+        $app['logger'] = $this->getMockLogger();
+
+        // print_r(get_class_methods($this)); die;
     }
+
+    public function getMockLogger() {
+        if(!$this->mockLogger) {
+            $this->mockLogger = $this->getMock('Psr\Log\LoggerInterface');
+        }
+
+        return $this->mockLogger;
+    }
+
+    // public function getDataSetName
 
 }

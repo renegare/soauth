@@ -23,9 +23,9 @@ interface AccessProviderInterface {
     public function exchange($authCode);
 
     /**
-     * get access credentials for the given access code
+     * get security access token (that contains credentials) for the given access code
      * @param $accessCode string
-     * @return CredentialsInterface
+     * @return AccessToken
      */
     public function getAccessToken($accessCode);
 

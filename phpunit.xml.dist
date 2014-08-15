@@ -21,4 +21,9 @@
             <directory suffix=".php">./src</directory>
         </whitelist>
     </filter>
+
+    <listeners>
+        <listener class="Renegare\Soauth\Test\LoggerTestListener" />
+    </listeners>
+
 </phpunit>
