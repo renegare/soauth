@@ -31,7 +31,7 @@ class Access extends AbstractController {
             $response = new JsonResponse([
                 'access_code' => $credentials->getAccessCode(),
                 'refresh_code' => $credentials->getRefreshCode(),
-                'expires' => $credentials->getExpires()
+                'lifetime' => $credentials->getLifetime()
             ]);
         } catch (SoauthException $e) {
             $data = [];
@@ -55,7 +55,7 @@ class Access extends AbstractController {
             $response = new JsonResponse([
                 'access_code' => $credentials->getAccessCode(),
                 'refresh_code' => $credentials->getRefreshCode(),
-                'expires' => $credentials->getExpires()
+                'lifetime' => $credentials->getLifetime()
             ]);
         } catch (SoauthException $e) {
             $data = [];

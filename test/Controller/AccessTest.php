@@ -31,7 +31,7 @@ class AccessTest extends WebTestCase {
             ['Valid request', 'fake-auth-code=', [
                 'access_code' => 'fake-access-code=',
                 'refresh_code' => 'fake-refresh-code=',
-                'expires' => '3600'
+                'lifetime' => '3600'
             ]],
 
             ['Request made with no code', null, null, ['code']],
@@ -60,7 +60,7 @@ class AccessTest extends WebTestCase {
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
                 $mockCredentials->expects($this->once())->method('getAccessCode')->will($this->returnValue($expectedAccessCredentials['access_code']));
                 $mockCredentials->expects($this->once())->method('getRefreshCode')->will($this->returnValue($expectedAccessCredentials['refresh_code']));
-                $mockCredentials->expects($this->once())->method('getExpires')->will($this->returnValue($expectedAccessCredentials['expires']));
+                $mockCredentials->expects($this->once())->method('getLifetime')->will($this->returnValue($expectedAccessCredentials['lifetime']));
 
                 return $mockCredentials;
             }));
@@ -89,7 +89,7 @@ class AccessTest extends WebTestCase {
             ['Valid Request', 'fake-refresh-code=', [
                 'access_code' => 'new-fake-access-code=',
                 'refresh_code' => 'new-fake-refresh-code=',
-                'expires' => '3600'
+                'lifetime' => '3600'
             ]],
 
             ['Invalid Request #1', '', null, ['refresh_code']],
@@ -117,7 +117,7 @@ class AccessTest extends WebTestCase {
                 $mockCredentials = $this->getMock('Renegare\Soauth\CredentialsInterface');
                 $mockCredentials->expects($this->once())->method('getAccessCode')->will($this->returnValue($expectedAccessCredentials['access_code']));
                 $mockCredentials->expects($this->once())->method('getRefreshCode')->will($this->returnValue($expectedAccessCredentials['refresh_code']));
-                $mockCredentials->expects($this->once())->method('getExpires')->will($this->returnValue($expectedAccessCredentials['expires']));
+                $mockCredentials->expects($this->once())->method('getLifetime')->will($this->returnValue($expectedAccessCredentials['lifetime']));
 
                 return $mockCredentials;
             }));

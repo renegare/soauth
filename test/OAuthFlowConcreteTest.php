@@ -3,6 +3,7 @@
 namespace Renegare\Soauth\Test;
 
 use Silex\Application;
+use Symfony\Component\HttpFoundation\Response;
 
 class OAuthFlowConcreteTest extends WebtestCase {
     protected $mockRenderer;
@@ -11,6 +12,48 @@ class OAuthFlowConcreteTest extends WebtestCase {
         parent::configureApplication($app);
 
         $this->configureMocks($app);
+    }
+
+    public function provideTestAuthenticateDatasets() {
+        return [
+            [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123']
+        ];
+    }
+    /**
+     * @dataProvider provideTestAuthenticateDatasets
+     */
+    public function testAuthenticate($expectToSucceed, $clientId, $redirectUri, $username, $password) {
+
+        $app = $this->createApplication(true);
+        $client = $this->createClient([], $app);
+        $client->followRedirects(false);
+        $crawler = $client->request('GET', '/auth/', [
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri
+        ]);
+
+        $response = $client->getResponse();
+        $formButton = $crawler->selectButton('Sign-in');
+        $this->assertCount(1, $formButton, $response->getContent());
+
+        $form = $formButton->form([
+            'username' => 'test@example.com',
+            'password' => 'Password123'
+        ]);
+
+        $client->submit($form);
+        $response = $client->getResponse();
+        $this->assertEquals(Response::HTTP_FOUND, $response->getStatusCode());
+        $redirectTargetUrl = $response->getTargetUrl();
+        $this->assertContains('http://client.com/cb' . '?code', $redirectTargetUrl);
+    }
+
+    public function testRefresh() {
+        $this->markTestIncomplete();
+    }
+
+    public function testRequest() {
+        $this->markTestIncomplete();
     }
 
     protected function configureMocks(Application $app) {
@@ -26,27 +69,5 @@ class OAuthFlowConcreteTest extends WebtestCase {
     <button type="submit">Sign-in</button>
 </form>';
             }));
-    }
-
-    public function testAuthenticate() {
-        $app = $this->createApplication(true);
-        $client = $this->createClient([], $app);
-        $client->followRedirects(false);
-        $crawler = $client->request('GET', '/auth/', [
-            'client_id' => '1',
-            'redirect_uri' => 'http://client.com/cb'
-        ]);
-
-        $response = $client->getResponse();
-        $formButton = $crawler->selectButton('Sign-in');
-        $this->assertCount(1, $formButton, $response->getContent());
-    }
-
-    public function testRefresh() {
-        $this->markTestIncomplete();
-    }
-
-    public function testRequest() {
-        $this->markTestIncomplete();
     }
 }

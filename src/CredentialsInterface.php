@@ -26,5 +26,5 @@ interface CredentialsInterface {
      * get expires
      * @return string|integer
      */
-    public function getExpires();
+    public function getLifetime();
 }

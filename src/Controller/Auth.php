@@ -32,10 +32,10 @@ class Auth extends AbstractController {
     }
 
     public function signinAction(Request $request) {
-        $this->info('> Sign in request', ['request' => $request]);
         try {
             $data = $this->getAuthClientIdentifiers($request);
-            $response = $this->renderer->renderSignInForm($data);
+            $this->info('> Sign in request', ['method' => $request->getMethod(), 'query' => $data]);
+            $response = new Response($this->renderer->renderSignInForm($data));
         } catch (BadDataException $e) {
             $this->error('Bad Data Exception: ' . $e->getMessage(), ['errors' => $e->getErrors(), 'exception' => $e]);
             $response = $this->getBadRequestResponse();
@@ -44,31 +44,39 @@ class Auth extends AbstractController {
             $response = $this->getBadRequestResponse();
         }
 
+        $this->info('< Response', ['status_code' => $response->getStatusCode()]);
         return $response;
     }
 
-    protected function getBadRequestResponse($message = 'Error') {
-        return new Response($message, Response::HTTP_BAD_REQUEST);
+    protected function getBadRequestResponse($content = 'Error') {
+        return new Response($content, Response::HTTP_BAD_REQUEST);
+    }
+
+    protected function getBadFormRequestResponse($data = []) {
+        $content = $this->renderer->renderSignInForm($data);
+        return $this->getBadRequestResponse($content);
     }
 
     public function authenticateAction(Request $request) {
+        $data = $request->request->all();
         try {
             $data = $this->getAuthCredentials($request);
+            $this->info('> Authenticate request', ['method' => $request->getMethod(), 'query' => $data]);
             // exports $client_id, $redirect_uri, $username and $password
             extract($data);
 
             $accessCredentials = $this->accessProvider->generate($client_id, $redirect_uri, $username, $password, $request);
             $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
+        }catch (BadDataException $e) {
+            $data['errors'] = $e->getErrors();
+            $this->error('Bad Data Exception: ' . $e->getMessage(), ['errors' => $data['errors'], 'exception' => $e]);
+            $response = $this->getBadFormRequestResponse($data);
         } catch (SoauthException $e) {
-            $data = $request->request->all();
-            if($e instanceof BadDataException) {
-                $data['errors'] = $e->getErrors();
-            }
-
-            $content = $this->renderer->renderSignInForm($data);
-            $response = new Response($content, Response::HTTP_BAD_REQUEST);
+            $this->error('Soauth Exception: ' . $e->getMessage(), ['exception' => $e]);
+            $response = $this->getBadFormRequestResponse($data);
         }
 
+        $this->info('< Response', ['status_code' => $response->getStatusCode()]);
         return $response;
     }
 
