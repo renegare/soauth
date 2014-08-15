@@ -50,12 +50,18 @@ class OAuthFlowConcreteTest extends WebtestCase {
 
         // server flow (exchange for access code)
         $code = explode('?code=', $redirectTargetUrl)[1];
+        $client = $this->createClient([], $app);
         $client->request('POST', '/auth/access', ['code' => $code]);
         $response = $client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $credentials = json_decode($response->getContent());
+        $credentials = json_decode($response->getContent(), true);
 
-        // print_r($credentials); die;
+        // set X-ACCESS-CODE
+        $accessCode = $credentials['access_code'];
+        $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
+        $client->request('GET', '/api');
+        $response = $client->getResponse();
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
     }
 
     public function testRefresh() {

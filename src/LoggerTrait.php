@@ -13,7 +13,7 @@ trait LoggerTrait {
      */
     public function log($level, $message, array $context = array()) {
         if($this->logger) {
-            $this->logger->log($level, $message, $context);
+            $this->logger->log($level, 'SOAUTH: ' . $message, $context);
         }
     }
 }

@@ -12,7 +12,8 @@ use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\HttpFoundation\Request;
 
-class Listener extends AbstractLogger {
+class Listener implements ListenerInterface, LoggerInterface {
+    use LoggerTrait;
 
     /** @var SecurityContextInterface */
     protected $securityContext;
@@ -33,10 +34,10 @@ class Listener extends AbstractLogger {
      */
     public function handle(GetResponseEvent $event) {
         $request = $event->getRequest();
-
+        // $this->info('> Soauth Request')
         try {
             $token = $this->getAccessToken($request);
-            $this->info('User appears to be logged in already. #Noop', ['token' => $token->getAttributes()]);
+            $this->info('User appears to be logged in already. #Noop', ['credentials' => $token->getCredentials()]);
             $this->securityContext->setToken($token);
         } catch (BadRequestException $e) {
             $this->error('Soauth Listener ' . $e->getMessage(), ['exception' => $e]);

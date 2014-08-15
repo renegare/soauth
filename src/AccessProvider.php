@@ -50,7 +50,11 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
     /**
      * {@inheritdoc}
      */
-    public function getAccessToken($accessCode) {}
+    public function getAccessToken($accessCode) {
+        $credentials = $this->storage->getAccessCodeCredentials($accessCode);
+        $token = new AccessToken($credentials, []);
+        return $token;
+    }
 
     /**
      * {@inheritdoc}

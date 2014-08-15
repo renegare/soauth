@@ -19,4 +19,11 @@ interface AccessStorageHandlerInterface {
      * @param CredentialsInterface $credentials
      */
     public function save(CredentialsInterface $credentials);
+
+    /**
+     * Retrieve credentials using $accessCode
+     * @param string $accessCode
+     * @return CredentialsInterface|null if not found or expired
+     */
+    public function getAccessCodeCredentials($accessCode);
 }

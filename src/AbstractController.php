@@ -5,7 +5,8 @@ namespace Renegare\Soauth;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints\Collection;
 
-abstract class AbstractController extends AbstractLogger {
+abstract class AbstractController implements LoggerInterface {
+    use LoggerTrait;
 
     protected function validate(array $constraints, array $data) {
 
