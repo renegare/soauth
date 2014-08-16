@@ -40,7 +40,7 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.access.provider'] = $app->share(function(Application $app){
-            $accessProvider = new AccessProvider($app['soauth.test']? $app['soauth.access.storage.handler.mock'] : $app['soauth.access.storage.handler'], 
+            $accessProvider = new AccessProvider($app['soauth.test']? $app['soauth.access.storage.handler.mock'] : $app['soauth.access.storage.handler'],
                 $app['soauth.access.client.provider'],
                 $app['soauth.access.user.provider']);
 
@@ -56,12 +56,14 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.access.client.provider'] = $app->share(function(Application $app){
-            return new AccessClientProvider();
+            return new AccessClientProvider($app['soauth.access.client.provider.config']);
         });
 
         $app['soauth.access.user.provider'] = $app->share(function(Application $app){
-            return new AccessUserProvider();
+            return new AccessUserProvider($app['soauth.access.user.provider.config']);
         });
+
+        $app['soauth.access.user.provider.config'] = [];
     }
 
     public function boot(Application $app) {}

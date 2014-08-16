@@ -34,7 +34,7 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, time(), $ip));
         $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
 
-        $credentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime);
+        $credentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime, $clientId, $username);
         $this->storage->save($credentials);
 
         return $credentials;
@@ -51,8 +51,23 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
      * {@inheritdoc}
      */
     public function getAccessToken($accessCode) {
-        $credentials = $this->storage->getAccessCodeCredentials($accessCode);
+        if(!($credentials = $this->storage->getAccessCodeCredentials($accessCode))) {
+            throw new SoauthException(sprintf('No credenitials found with access code %s', $accessCode));
+        }
+
+        $username = $credentials->getUsername();
+        if(!($user = $this->userProvider->getUsernameUser($username))) {
+            throw new SoauthException(sprintf('No user found with username %s', $username));
+        }
+
+        $clientId = $credentials->getClientId();
+        if(!($client = $this->clientProvider->getClient($clientId))) {
+            throw new SoauthException(sprintf('No client found with id %s', $clientId));
+        }
+
         $token = new AccessToken($credentials, []);
+        $token->setUser($user);
+        $token->setClient($client);
         return $token;
     }
 

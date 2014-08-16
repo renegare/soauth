@@ -27,4 +27,16 @@ interface CredentialsInterface {
      * @return string|integer
      */
     public function getLifetime();
+
+    /**
+     * get username
+     * @return string|integer
+     */
+    public function getUsername();
+
+    /**
+     * get client id
+     * @return string|integer
+     */
+    public function getClientId();
 }

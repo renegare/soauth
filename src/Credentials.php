@@ -8,18 +8,23 @@ class Credentials implements CredentialsInterface {
     protected $accessCode;
     protected $refreshCode;
     protected $lifetime;
+    protected $username;
+    protected $clientId;
 
     /**
      * @param string $authCode
      * @param string $accessCode
      * @param string $refreshCode
      * @param string $expires
+     * @param string $username
      */
-    public function __construct($authCode, $accessCode, $refreshCode, $lifetime) {
+    public function __construct($authCode, $accessCode, $refreshCode, $lifetime, $clientId, $username) {
         $this->authCode = $authCode;
         $this->accessCode = $accessCode;
         $this->refreshCode = $refreshCode;
         $this->lifetime = $lifetime;
+        $this->clientId = $clientId;
+        $this->username = $username;
     }
 
     /**
@@ -48,5 +53,19 @@ class Credentials implements CredentialsInterface {
      */
     public function getLifetime(){
         return $this->lifetime;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUsername() {
+        return $this->username;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getClientId() {
+        return $this->clientId;
     }
 }

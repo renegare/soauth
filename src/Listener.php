@@ -34,13 +34,15 @@ class Listener implements ListenerInterface, LoggerInterface {
      */
     public function handle(GetResponseEvent $event) {
         $request = $event->getRequest();
-        // $this->info('> Soauth Request')
+
+        $this->info('> Security listener request', ['headers' => $request->headers->all()]);
+
         try {
             $token = $this->getAccessToken($request);
             $this->info('User appears to be logged in already. #Noop', ['credentials' => $token->getCredentials()]);
             $this->securityContext->setToken($token);
         } catch (BadRequestException $e) {
-            $this->error('Soauth Listener ' . $e->getMessage(), ['exception' => $e]);
+            $this->error($e->getMessage(), ['exception' => $e]);
             $response = new Response(json_encode($e->getMessage()), $e->getCode());
             $event->setResponse($response);
         }
@@ -56,6 +58,7 @@ class Listener implements ListenerInterface, LoggerInterface {
             $accessCode = $request->headers->get('X-ACCESS-CODE');
             return $this->accessProvider->getAccessToken($accessCode);
         } catch (SoauthException $e) {
+            $this->error($e->getMessage(), ['exception' => $e]);
             $exception = new BadRequestException($request, 'No valid access code found', Response::HTTP_UNAUTHORIZED, $e);
             throw $exception;
         }
