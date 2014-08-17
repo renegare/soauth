@@ -21,7 +21,7 @@ class AccessClientProvider implements AccessClientProviderInterface {
         }
     }
 
-    public function isValid(Client $client, $redirectUri) {
+    public function isValid(ClientInterface $client, $redirectUri) {
         $pattern = sprintf('/^https?:\\/\\/.*%s(?:\\/.*)?$/', preg_replace('/\./', '\\.', $client->getDomain()));
         return $client->isActive() && preg_match($pattern, $redirectUri);
     }

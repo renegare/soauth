@@ -21,44 +21,46 @@ class AuthTest extends WebTestCase {
     public function setUp() {
         $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
         $this->mockRenderer = $this->getMock('Renegare\Soauth\RendererInterface');
+        $this->mockClientProvider = $this->getMock('Renegare\Soauth\AccessClientProviderInterface');
 
         $app = $this->createApplication(true);
         $app['soauth.access.provider'] = $this->mockAccessProvider;
         $app['soauth.renderer'] = $this->mockRenderer;
+        $app['soauth.access.client.provider'] = $this->mockClientProvider;
         $this->app = $app;
     }
 
     public function provideSigninActionTestCases() {
         return [
-            # test case 0
+
             [true, [
                     'client_id' => 1,
                     'redirect_uri' => 'http://external.client.com/redirect/path'
                 ], 'test+1@example.com', 'Password123'],
-            # test case 1
+
             [true, [
                     'client_id' => '1',
                     'redirect_uri' => 'http://external.client.com/redirect/path'
                 ], 'test+1@example.com', 'Password123'],
-            # test case 2
+
             [false, [
                     'redirect_uri' => 'http://external.client.com/redirect/path'
                 ], 'test+1@example.com', 'Password123'],
-            # test case 3
+
             [false, [
                     'client' => 2
                 ], 'test+1@example.com', 'Password123'],
-            # test case 4
+
             [false, [
                     'client_id' => '123ss',
                     'redirect_uri' => 'http://external.client.com/redirect/path'
                 ], 'test+1@example.com', 'Password123'],
-            # test case 5
+
             [false, [
                     'client_id' => 1,
                     'redirect_uri' => 'kjdskjsdjk23'
                 ], 'test+1@example.com', 'Password123'],
-            # test case 6
+
             [false, [], 'test+1@example.com', 'Password123']
         ];
     }
@@ -68,9 +70,12 @@ class AuthTest extends WebTestCase {
      */
     public function testSigninAction($expectToSucceed, $requestQuery, $expectedUsername, $expectedPassword) {
         $app = $this->app;
+
+        $mockClient = $this->getMock('Renegare\Soauth\ClientInterface');
+
         $this->mockRenderer->expects($expectToSucceed? $this->once() : $this->never())
-            ->method('renderSignInForm')->will($this->returnCallback(function($data) use ($requestQuery){
-                $this->assertEquals($requestQuery, $data);
+            ->method('renderSignInForm')->will($this->returnCallback(function($data) use ($requestQuery, $mockClient){
+                $this->assertEquals(array_merge($requestQuery, ['client' => $mockClient]), $data);
 
                 return '<form method="post">
     <input type="text" name="username" />
@@ -79,6 +84,19 @@ class AuthTest extends WebTestCase {
     <input type="hidden" name="client_id" value="'. $data['client_id'] .'" />
     <button type="submit">Sign-in</button>
 </form>';
+            }));
+
+        $this->mockClientProvider->expects($this->any())->method('getClient')
+            ->will($this->returnCallback(function($clientId) use ($requestQuery, $mockClient){
+                $this->assertEquals($requestQuery['client_id'], $clientId);
+                return $mockClient;
+            }));
+
+        $this->mockClientProvider->expects($this->any())->method('isValid')
+            ->will($this->returnCallback(function($client, $redirectUri) use ($requestQuery, $mockClient){
+                $this->assertEquals($requestQuery['redirect_uri'], $redirectUri);
+                $this->assertSame($mockClient, $client);
+                return true;
             }));
 
         $client = $this->createClient([], $app);

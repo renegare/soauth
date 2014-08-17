@@ -10,5 +10,5 @@ interface AccessClientProviderInterface {
      */
     public function getClient($id);
 
-    public function isValid(Client $client, $redirectUri);
+    public function isValid(ClientInterface $client, $redirectUri);
 }
