@@ -11,4 +11,6 @@ interface AccessUserProviderInterface {
      * @return UserInterface|string|null
      */
     public function getUsernameUser($username);
+
+    public function isValid(UserInterface $user, $password = '');
 }

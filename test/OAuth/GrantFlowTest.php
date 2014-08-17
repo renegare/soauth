@@ -25,7 +25,9 @@ class GrantFlowTest extends WebtestCase {
 
     public function provideTestAuthenticateDatasets() {
         return [
-            [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123']
+            [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123'],
+            [false, 1, 'http://client.com/cb', 'incorrect@example.com', 'Password123'],
+            [false, 1, 'http://client.com/cb', 'test@example.com', 'IncorrectPassword123'],
         ];
     }
     /**
@@ -59,12 +61,18 @@ class GrantFlowTest extends WebtestCase {
         $formButton = $crawler->selectButton('Sign-in');
         $this->assertCount(1, $formButton, $response->getContent());
         $form = $formButton->form([
-            'username' => 'test@example.com',
-            'password' => 'Password123'
+            'username' => $username,
+            'password' => $password
         ]);
         $client->submit($form);
         $response = $client->getResponse();
-        $this->assertEquals(Response::HTTP_FOUND, $response->getStatusCode());
+
+        if($response->getStatusCode() !== Response::HTTP_FOUND) {
+            $this->assertFalse($expectToSucceed);
+            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+            return;
+        }
+
         $redirectTargetUrl = $response->getTargetUrl();
         $this->assertContains('http://client.com/cb' . '?code', $redirectTargetUrl);
 
@@ -78,12 +86,12 @@ class GrantFlowTest extends WebtestCase {
 
         // set test to verify security access token and X-ACCESS-CODE header on client
         $accessCode = $credentials['access_code'];
-        $verifyAccessTokenCb = function(Application $app) use ($accessCode){
+        $verifyAccessTokenCb = function(Application $app) use ($accessCode, $username, $clientId){
             $token = $app['security']->getToken();
             $credentials = $token->getCredentials();
             $this->assertEquals($accessCode, $credentials->getAccessCode());
-            $this->assertEquals('test@example.com', $token->getUsername());
-            $this->assertEquals('1', $token->getClient()->getId());
+            $this->assertEquals($username, $token->getUsername());
+            $this->assertEquals($clientId, $token->getClient()->getId());
         };
 
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $app);
@@ -92,6 +100,7 @@ class GrantFlowTest extends WebtestCase {
         $content = $response->getContent();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
         $this->assertEquals('Access Granted', $content);
+        $this->assertTrue($expectToSucceed);
     }
 
     protected function configureMocks(Application $app) {

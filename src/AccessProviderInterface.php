@@ -7,13 +7,15 @@ use Symfony\Component\HttpFoundation\Request;
 interface AccessProviderInterface {
 
     /**
-     * load a client using the client id
-     * @param $client ClientInterface
-     * @param $user UserInterface
-     * @param $ip string
+     * generate and store access credentials
+     * @param Request $request
+     * @param string $clientId
+     * @param string $redirectUri
+     * @param string $username
+     * @param string $password [optional]
      * @return CredentialsInterface
      */
-    public function generate($clientId, $redirecUri, $username, $password, Request $request);
+    public function generate(Request $request, $clientId, $redirecUri, $username, $password = '');
 
     /**
      * get access credentials for the given auth code

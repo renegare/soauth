@@ -56,7 +56,7 @@ class Auth extends AbstractController {
             // exports $client_id, $redirect_uri, $username and $password
             extract($data);
 
-            $accessCredentials = $this->accessProvider->generate($client_id, $redirect_uri, $username, $password, $request);
+            $accessCredentials = $this->accessProvider->generate($request, $client_id, $redirect_uri, $username, $password);
             $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
         }catch (BadDataException $e) {
             $data['errors'] = $e->getErrors();

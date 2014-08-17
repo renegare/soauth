@@ -147,7 +147,7 @@ class AuthTest extends WebTestCase {
         $expectedToSucceed = !$expectedValidationError && !$expectAuthProviderException;
 
         $this->mockAccessProvider->expects($this->any())->method('generate')
-            ->will($this->returnCallback(function($clientId, $redirectUri, $username, $password, $request) use ($expectedIp, $requestData, $expectAuthProviderException) {
+            ->will($this->returnCallback(function($request, $clientId, $redirectUri, $username, $password) use ($expectedIp, $requestData, $expectAuthProviderException) {
                 $this->assertEquals($expectedIp, $request->getClientIp());
                 $this->assertEquals($requestData['client_id'], $clientId);
                 $this->assertEquals($requestData['username'], $username);
