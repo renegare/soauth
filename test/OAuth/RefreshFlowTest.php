@@ -51,6 +51,7 @@ class RefreshFlowTest extends FlowTestCase {
     }
 
     public function testFlow() {
+        // ensure we have access
         $accessCode = $this->credentials['access_code'];
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
         $client->request('GET', '/verify-access-token');
@@ -59,17 +60,29 @@ class RefreshFlowTest extends FlowTestCase {
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
         $this->assertEquals('Access Granted', $content);
 
+        // refresh access
         $code = $this->credentials['refresh_code'];
         $client = $this->createClient([], $this->app);
         $client->request('PUT', '/auth/access', ['refresh_code' => $code]);
         $response = $client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $newCredentials = json_decode($response->getContent(), true);
 
+        // ensure previous access code is unauthorized
         $accessCode = $this->credentials['access_code'];
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
         $client->request('GET', '/verify-access-token');
         $response = $client->getResponse();
         $content = $response->getContent();
         $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+
+        // ensure new access code is recognised
+        $accessCode = $newCredentials['access_code'];
+        $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
+        $client->request('GET', '/verify-access-token');
+        $response = $client->getResponse();
+        $content = $response->getContent();
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
+        $this->assertEquals('Access Granted', $content);
     }
 }

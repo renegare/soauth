@@ -110,11 +110,11 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
         $newCredentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime, $clientId, $username);
 
-        $this->info('refreshed credentials', ['new_access_code' => $credentials->getAccessCode(), 'old_access_code' => $newCredentials->getAccessCode()]);
+        $this->info('refreshed credentials', ['old_access_code' => $credentials->getAccessCode(), 'new_access_code' => $newCredentials->getAccessCode()]);
         $this->storage->save($newCredentials);
         $this->storage->invalidate($credentials);
 
-        return $credentials;
+        return $newCredentials;
     }
 
     protected function getDigest($data) {
