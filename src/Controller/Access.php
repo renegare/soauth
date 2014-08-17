@@ -13,6 +13,10 @@ use Renegare\Soauth\AbstractController;
 use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\SoauthException;
 
+/**
+ * @todo: this controller needs to expect+verify a client secret ... else anyone can gain
+ * an access token with a valid a auth or refresh code!!
+ */
 class Access extends AbstractController {
 
     /** @var AccessProviderInterface */
@@ -71,7 +75,7 @@ class Access extends AbstractController {
         }
 
         $this->info('< Response', ['status_code' => $response->getStatusCode()]);
-        
+
         return $response;
     }
 

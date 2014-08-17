@@ -94,7 +94,9 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
     /**
      * {@inheritdoc}
      */
-    public function refresh($refreshCode) {}
+    public function refresh($refreshCode) {
+        throw new \Exception(__METHOD__ . ' Not implemented!!');
+    }
 
     protected function getDigest($data) {
         return base64_encode(hash_hmac("sha1", $data, $this->secret));
