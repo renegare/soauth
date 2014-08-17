@@ -30,6 +30,11 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
      */
     public function generate($clientId, $redirecUri, $username, $password, Request $request) {
         $ip = $request->getClientIp();
+        $user = $this->getUser($username);
+        $client = $this->getClient($clientId);
+
+        $this->info('found valid user and client', ['user' => $username, 'client' => $clientId]);
+
         $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
         $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, time(), $ip));
         $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
@@ -47,6 +52,20 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         return $this->storage->getAuthCodeCredentials($authCode);
     }
 
+    protected function getUser($username) {
+        if(!($user = $this->userProvider->getUsernameUser($username))) {
+            throw new SoauthException(sprintf('No user found with username %s', $username));
+        }
+        return $user;
+    }
+
+    protected function getClient($clientId) {
+        if(!($client = $this->clientProvider->getClient($clientId))) {
+            throw new SoauthException(sprintf('No client found with id %s', $clientId));
+        }
+        return $client;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -55,15 +74,8 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
             throw new SoauthException(sprintf('No credenitials found with access code %s', $accessCode));
         }
 
-        $username = $credentials->getUsername();
-        if(!($user = $this->userProvider->getUsernameUser($username))) {
-            throw new SoauthException(sprintf('No user found with username %s', $username));
-        }
-
-        $clientId = $credentials->getClientId();
-        if(!($client = $this->clientProvider->getClient($clientId))) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
+        $user = $this->getUser($credentials->getUsername());
+        $client = $this->getClient($credentials->getClientId());
 
         $token = new AccessToken($credentials, []);
         $token->setUser($user);
