@@ -3,6 +3,7 @@
 namespace Renegare\Soauth\Test\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 
 use Renegare\Soauth\Test\WebTestCase;
 use Renegare\Soauth\SoauthException;
@@ -107,7 +108,7 @@ class AccessTest extends WebTestCase {
         $expectedSuccess = !$expectedValidationError && !$expectedAccessProviderException;
 
         $this->mockAccessProvider->expects($expectedValidationError? $this->never() : $this->once())
-            ->method('refresh')->will($this->returnCallback(function($refreshCode) use ($expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel, $expectedAccessProviderException){
+            ->method('refresh')->will($this->returnCallback(function(Request $request, $refreshCode) use ($expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel, $expectedAccessProviderException){
                 $this->assertEquals($expectedRefreshCode, $refreshCode, $testCaseLabel);
 
                 if($expectedAccessProviderException) {
