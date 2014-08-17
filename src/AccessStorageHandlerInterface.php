@@ -26,4 +26,8 @@ interface AccessStorageHandlerInterface {
      * @return CredentialsInterface|null if not found or expired
      */
     public function getAccessCodeCredentials($accessCode);
+
+    public function getRefreshCodeCredentials($refreshCode);
+
+    public function invalidate(CredentialsInterface $credentials);
 }

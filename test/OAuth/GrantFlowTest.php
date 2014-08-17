@@ -2,30 +2,12 @@
 
 namespace Renegare\Soauth\Test\OAuth;
 
+use Renegare\Soauth\Test\FlowTestCase;
 use Renegare\Soauth\Test\WebtestCase;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 
-class GrantFlowTest extends WebtestCase {
-    protected $mockRenderer;
-
-    protected function configureApplication(Application $app) {
-        parent::configureApplication($app);
-
-        $app['soauth.access.user.provider.config'] = [
-            'test@example.com' => ['password' => $app['security.encoder.digest']->encodePassword('Password123', ''), 'roles' => ['ROLE_USER'], 'enabled' => true]
-        ];
-
-        $app['soauth.access.client.provider.config'] = [
-            '1' => [
-                'name' => 'Example Client',
-                'domain' => 'client.com',
-                'active' => true
-            ]
-        ];
-
-        $this->configureMocks($app);
-    }
+class GrantFlowTest extends FlowTestCase {
 
     public function provideTestAuthenticateDatasets() {
         return [
@@ -41,8 +23,8 @@ class GrantFlowTest extends WebtestCase {
      */
     public function testAuthenticate($expectToSucceed, $clientId, $redirectUri, $username, $password) {
         $app = $this->createApplication(true);
+        
         $verifyAccessTokenCb = null;
-
         $app->get('/verify-access-token', function(Application $app) use (&$verifyAccessTokenCb){
             $verifyAccessTokenCb($app);
 
@@ -114,20 +96,5 @@ class GrantFlowTest extends WebtestCase {
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
         $this->assertEquals('Access Granted', $content);
         $this->assertTrue($expectToSucceed);
-    }
-
-    protected function configureMocks(Application $app) {
-        $this->mockRenderer = $this->getMock('Renegare\Soauth\RendererInterface');
-        $app['soauth.renderer'] = $this->mockRenderer;
-        $this->mockRenderer->expects($this->any())
-            ->method('renderSignInForm')->will($this->returnCallback(function($data) {
-                return '<form method="post">
-    <input type="text" name="username" value="'. (isset($data['username'])? $data['username'] : '') .'"/>
-    <input type="password" name="password" />
-    <input type="hidden" name="redirect_uri" value="'. $data['redirect_uri'] .'" />
-    <input type="hidden" name="client_id" value="'. $data['client_id'] .'" />
-    <button type="submit">Sign-in</button>
-</form>';
-            }));
     }
 }

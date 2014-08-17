@@ -57,7 +57,7 @@ class Access extends AbstractController {
         try {
             $refreshCode = $this->getRefreshCode($request);
 
-            $credentials = $this->accessProvider->refresh($refreshCode);
+            $credentials = $this->accessProvider->refresh($request, $refreshCode);
 
             $response = new JsonResponse([
                 'access_code' => $credentials->getAccessCode(),

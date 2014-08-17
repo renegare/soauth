@@ -94,11 +94,30 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
     /**
      * {@inheritdoc}
      */
-    public function refresh($refreshCode) {
-        throw new \Exception(__METHOD__ . ' Not implemented!!');
+    public function refresh(Request $request, $refreshCode) {
+        $credentials = $this->storage->getRefreshCodeCredentials($refreshCode);
+
+        $ip = $request->getClientIp();
+        $username = $credentials->getUsername();
+        $clientId = $credentials->getClientId();
+        $user = $this->getUser($username);
+        $client = $this->getClient($clientId);
+
+        $this->info('found valid user and client', ['user' => $username, 'client' => $clientId]);
+
+        $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
+        $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
+        $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
+        $newCredentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime, $clientId, $username);
+
+        $this->info('refreshed credentials', ['new_access_code' => $credentials->getAccessCode(), 'old_access_code' => $newCredentials->getAccessCode()]);
+        $this->storage->save($newCredentials);
+        $this->storage->invalidate($credentials);
+
+        return $credentials;
     }
 
     protected function getDigest($data) {
-        return base64_encode(hash_hmac("sha1", $data, $this->secret));
+        return base64_encode(hash_hmac("sha1", $data . rand(0,1000), $this->secret));
     }
 }

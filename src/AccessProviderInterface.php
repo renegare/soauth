@@ -33,8 +33,9 @@ interface AccessProviderInterface {
 
     /**
      * generate a new set of credentials from the old one
+     * @param Request $request
      * @param $refreshCode string
      * @return CredentialsInterface
      */
-    public function refresh($refreshCode);
+    public function refresh(Request $request, $refreshCode);
 }
