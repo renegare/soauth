@@ -72,14 +72,11 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         $controllers = $app['controllers_factory'];
 
         $app['soauth.controller.auth'] = $app->share(function($app){
-            $controller = new Controller\Auth;
+            $controller = new Controller\Auth($app['soauth.renderer'], $app['soauth.access.provider'], $app['soauth.access.client.provider']);
 
             if(isset($app['logger']) && $app['logger']) {
                 $controller->setLogger($app['logger']);
             }
-
-            $controller->setRenderer($app['soauth.renderer']);
-            $controller->setAccessProvider($app['soauth.access.provider']);
 
             return $controller;
         });

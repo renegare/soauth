@@ -64,6 +64,13 @@ class GrantFlowTest extends WebtestCase {
             'redirect_uri' => $redirectUri
         ]);
         $response = $client->getResponse();
+
+        if($response->getStatusCode() !== Response::HTTP_OK) {
+            $this->assertFalse($expectToSucceed);
+            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+            return;
+        }
+
         $formButton = $crawler->selectButton('Sign-in');
         $this->assertCount(1, $formButton, $response->getContent());
         $form = $formButton->form([

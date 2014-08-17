@@ -12,28 +12,36 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 use Renegare\Soauth\RendererInterface;
 use Renegare\Soauth\AccessProviderInterface;
+use Renegare\Soauth\AccessClientProviderInterface;
 use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\AbstractController;
 use Renegare\Soauth\SoauthException;
 
 class Auth extends AbstractController {
 
-    /** @var RendererInterface */
     protected $renderer;
-    /** @var AccessProviderInterface */
     protected $accessProvider;
+    protected $clientProvider;
 
-    public function setRenderer(RendererInterface $renderer) {
+    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, AccessClientProviderInterface $clientProvider) {
         $this->renderer = $renderer;
-    }
-
-    public function setAccessProvider(AccessProviderInterface $accessProvider) {
         $this->accessProvider = $accessProvider;
+        $this->clientProvider = $clientProvider;
     }
 
     public function signinAction(Request $request) {
         try {
             $data = $this->getAuthClientIdentifiers($request);
+
+            // exports $client_id, $redirect_uri
+            extract($data);
+
+            if(!(($client = $this->clientProvider->getClient($client_id)) && $this->clientProvider->isValid($client, $redirect_uri))) {
+                throw new SoauthException(sprintf('No client found with id %s', $client_id));
+            }
+
+            $data['client'] = $client;
+            
             $this->info('> Sign in request', ['method' => $request->getMethod(), 'query' => $data]);
             $response = new Response($this->renderer->renderSignInForm($data));
         } catch (BadDataException $e) {
