@@ -23,7 +23,7 @@ class GrantFlowTest extends FlowTestCase {
      */
     public function testAuthenticate($expectToSucceed, $clientId, $redirectUri, $username, $password) {
         $app = $this->createApplication(true);
-        
+
         $verifyAccessTokenCb = null;
         $app->get('/verify-access-token', function(Application $app) use (&$verifyAccessTokenCb){
             $verifyAccessTokenCb($app);
@@ -83,8 +83,6 @@ class GrantFlowTest extends FlowTestCase {
         $accessCode = $credentials['access_code'];
         $verifyAccessTokenCb = function(Application $app) use ($accessCode, $username, $clientId){
             $token = $app['security']->getToken();
-            $credentials = $token->getCredentials();
-            $this->assertEquals($accessCode, $credentials->getAccessCode());
             $this->assertEquals($username, $token->getUsername());
             $this->assertEquals($clientId, $token->getClient()->getId());
         };

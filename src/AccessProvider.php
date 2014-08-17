@@ -85,9 +85,8 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         $user = $this->getUser($credentials->getUsername());
         $client = $this->getClient($credentials->getClientId());
 
-        $token = new AccessToken($credentials, []);
+        $token = new AccessToken($client, []);
         $token->setUser($user);
-        $token->setClient($client);
         return $token;
     }
 

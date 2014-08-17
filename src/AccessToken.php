@@ -10,9 +10,9 @@ class AccessToken extends AbstractToken {
     protected $credentials;
     protected $client;
 
-    public function __construct(CredentialsInterface $credentials, array $roles = []) {
+    public function __construct(ClientInterface $client, array $roles = []) {
         parent::__construct($roles);
-        $this->credentials = $credentials;
+        $this->client = $client;
     }
 
     public function getCredentials() {
@@ -29,13 +29,5 @@ class AccessToken extends AbstractToken {
      */
     public function getClient() {
         return $this->client;
-    }
-
-    /**
-     * set client
-     * @param ClientInterface $client
-     */
-    public function setClient(ClientInterface $client) {
-        $this->client = $client;
     }
 }
