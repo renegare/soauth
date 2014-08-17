@@ -9,4 +9,6 @@ interface AccessClientProviderInterface {
      * @return ClientInterface|string|null
      */
     public function getClient($id);
+
+    public function isValid(Client $client, $redirectUri);
 }

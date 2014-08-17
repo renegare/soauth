@@ -28,12 +28,16 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
     /**
      * {@inheritdoc}
      */
-    public function generate(Request $request, $clientId, $redirecUri, $username, $password = '') {
+    public function generate(Request $request, $clientId, $redirectUri, $username, $password = '') {
         $ip = $request->getClientIp();
         $user = $this->getUser($username);
         $client = $this->getClient($clientId);
 
         if(!$this->userProvider->isValid($user, $password)) {
+            throw new SoauthException(sprintf('Bad user: %s', $username));
+        }
+
+        if(!$this->clientProvider->isValid($client, $redirectUri)) {
             throw new SoauthException(sprintf('Bad user: %s', $username));
         }
 

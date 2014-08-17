@@ -9,4 +9,10 @@ interface ClientInterface {
      */
     public function getId();
 
+    public function getName();
+
+    public function isActive();
+
+    public function getDomain();
+
 }

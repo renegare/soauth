@@ -17,7 +17,11 @@ class GrantFlowTest extends WebtestCase {
         ];
 
         $app['soauth.access.client.provider.config'] = [
-            '1' => ['name' => 'Example Client']
+            '1' => [
+                'name' => 'Example Client',
+                'domain' => 'client.com',
+                'active' => true
+            ]
         ];
 
         $this->configureMocks($app);
@@ -28,6 +32,8 @@ class GrantFlowTest extends WebtestCase {
             [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123'],
             [false, 1, 'http://client.com/cb', 'incorrect@example.com', 'Password123'],
             [false, 1, 'http://client.com/cb', 'test@example.com', 'IncorrectPassword123'],
+            [false, 2, 'http://client.com/cb', 'test@example.com', 'Password123'],
+            [false, 1, 'http://not.same.domain.com/cb', 'test@example.com', 'Password123']
         ];
     }
     /**

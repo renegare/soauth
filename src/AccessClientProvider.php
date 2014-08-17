@@ -16,8 +16,13 @@ class AccessClientProvider implements AccessClientProviderInterface {
     public function getClient($id) {
         foreach($this->clientStore as $clientId => $client) {
             if((integer) $clientId === (integer) $id) {
-                return new Client($clientId, $client['name']);
+                return new Client($clientId, $client['name'], $client['domain'], $client['active']);
             }
         }
+    }
+
+    public function isValid(Client $client, $redirectUri) {
+        $pattern = sprintf('/^https?:\\/\\/.*%s(?:\\/.*)?$/', preg_replace('/\./', '\\.', $client->getDomain()));
+        return $client->isActive() && preg_match($pattern, $redirectUri);
     }
 }
