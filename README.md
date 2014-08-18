@@ -5,7 +5,7 @@
 ### Phase 1 v0.0.1
 * Access Provider - refresh flow not done // done
 * Refactor ... a lot of things are prefixed with 'Access' ... remove it // Done
-* Access Controller needs to expect+verify client secret
+* Access Controller needs to expect+verify client secret // Done
 * Fix any subsequent bugs from the wild!?
 
 ### Phase 2 v0.1
