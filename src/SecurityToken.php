@@ -4,24 +4,17 @@ namespace Renegare\Soauth;
 
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 
-class AccessToken extends AbstractToken {
+class SecurityToken extends AbstractToken {
 
-    /** @var CredentialsInterface */
-    protected $credentials;
     protected $client;
 
+    /**
+     * @param ClientInterface $client
+     * @param array $roles
+     */
     public function __construct(ClientInterface $client, array $roles = []) {
         parent::__construct($roles);
         $this->client = $client;
-    }
-
-    public function getCredentials() {
-        return $this->credentials;
-    }
-
-    public function eraseCredentials() {
-        parent::eraseCredentials();
-        $this->credentials = null;
     }
 
     /**
@@ -29,5 +22,13 @@ class AccessToken extends AbstractToken {
      */
     public function getClient() {
         return $this->client;
+    }
+
+    /**
+     * presently does nothing
+     * {@inheritdoc}
+     */
+    public function getCredentials() {
+        return null;
     }
 }

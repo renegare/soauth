@@ -4,7 +4,7 @@ namespace Renegare\Soauth;
 
 use Symfony\Component\HttpFoundation\Request;
 
-class AccessProvider implements AccessProviderInterface, LoggerInterface {
+class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface {
     use LoggerTrait;
 
     protected $secret = 'ch4ng3Th1s!!!';
@@ -15,11 +15,11 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
 
     /**
      * dependencies
-     * @param AccessStorageHandlerInterface $storage
-     * @param AccessClientProvider $client
-     * @param AccessUserProvider $user
+     * @param StorageHandlerInterface $storage
+     * @param ClientProvider $client
+     * @param UserProvider $user
      */
-    public function __construct(AccessStorageHandlerInterface $storage, AccessClientProvider $client, AccessUserProvider $user) {
+    public function __construct(StorageHandlerInterface $storage, ClientProvider $client, UserProvider $user) {
         $this->storage = $storage;
         $this->clientProvider = $client;
         $this->userProvider = $user;
@@ -60,24 +60,10 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         return $this->storage->getAuthCodeCredentials($authCode);
     }
 
-    protected function getUser($username) {
-        if(!($user = $this->userProvider->getUsernameUser($username))) {
-            throw new SoauthException(sprintf('No user found with username %s', $username));
-        }
-        return $user;
-    }
-
-    protected function getClient($clientId) {
-        if(!($client = $this->clientProvider->getClient($clientId))) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
-        return $client;
-    }
-
     /**
      * {@inheritdoc}
      */
-    public function getAccessToken($accessCode) {
+    public function getSecurityToken($accessCode) {
         if(!($credentials = $this->storage->getAccessCodeCredentials($accessCode))) {
             throw new SoauthException(sprintf('No credenitials found with access code %s', $accessCode));
         }
@@ -85,7 +71,7 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         $user = $this->getUser($credentials->getUsername());
         $client = $this->getClient($credentials->getClientId());
 
-        $token = new AccessToken($client, []);
+        $token = new SecurityToken($client, []);
         $token->setUser($user);
         return $token;
     }
@@ -118,5 +104,19 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
 
     protected function getDigest($data) {
         return base64_encode(hash_hmac("sha1", $data . rand(0,1000), $this->secret));
+    }
+
+    protected function getUser($username) {
+        if(!($user = $this->userProvider->getUsernameUser($username))) {
+            throw new SoauthException(sprintf('No user found with username %s', $username));
+        }
+        return $user;
+    }
+
+    protected function getClient($clientId) {
+        if(!($client = $this->clientProvider->getClient($clientId))) {
+            throw new SoauthException(sprintf('No client found with id %s', $clientId));
+        }
+        return $client;
     }
 }

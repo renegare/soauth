@@ -40,9 +40,9 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.access.provider'] = $app->share(function(Application $app){
-            $accessProvider = new AccessProvider($app['soauth.test']? $app['soauth.access.storage.handler.mock'] : $app['soauth.access.storage.handler'],
-                $app['soauth.access.client.provider'],
-                $app['soauth.access.user.provider']);
+            $accessProvider = new AccessProvider($app['soauth.test']? $app['soauth.storage.handler.mock'] : $app['soauth.storage.handler'],
+                $app['soauth.client.provider'],
+                $app['soauth.user.provider']);
 
             if(isset($app['logger']) && $app['logger']) {
                 $accessProvider->setLogger($app['logger']);
@@ -51,19 +51,20 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
             return $accessProvider;
         });
 
-        $app['soauth.access.storage.handler.mock'] = $app->share(function(Application $app){
-            return new MockAccessStorageHandler();
+        $app['soauth.storage.handler.mock'] = $app->share(function(Application $app){
+            return new MockStorageHandler();
         });
 
-        $app['soauth.access.client.provider'] = $app->share(function(Application $app){
-            return new AccessClientProvider($app['soauth.access.client.provider.config']);
+        $app['soauth.client.provider'] = $app->share(function(Application $app){
+            return new ClientProvider($app['soauth.client.provider.config']);
         });
 
-        $app['soauth.access.user.provider'] = $app->share(function(Application $app){
-            return new AccessUserProvider($app['soauth.access.user.provider.config']);
+        $app['soauth.user.provider'] = $app->share(function(Application $app){
+            return new UserProvider($app['soauth.user.provider.config']);
         });
 
-        $app['soauth.access.user.provider.config'] = [];
+        $app['soauth.user.provider.config'] = [];
+        $app['soauth.client.provider.config'] = [];
     }
 
     public function boot(Application $app) {}
@@ -72,7 +73,7 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         $controllers = $app['controllers_factory'];
 
         $app['soauth.controller.auth'] = $app->share(function($app){
-            $controller = new Controller\Auth($app['soauth.renderer'], $app['soauth.access.provider'], $app['soauth.access.client.provider']);
+            $controller = new Controller\Auth($app['soauth.renderer'], $app['soauth.access.provider'], $app['soauth.client.provider']);
 
             if(isset($app['logger']) && $app['logger']) {
                 $controller->setLogger($app['logger']);

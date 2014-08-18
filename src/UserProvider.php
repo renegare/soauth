@@ -6,7 +6,7 @@ use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\Encoder\MessageDigestPasswordEncoder;
 
-class AccessUserProvider implements AccessUserProviderInterface {
+class UserProvider implements UserProviderInterface {
 
     protected $userStore;
     protected $digester;
@@ -27,11 +27,20 @@ class AccessUserProvider implements AccessUserProviderInterface {
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isValid(UserInterface $user, $password = '') {
         return $user->getPassword() === $this->encodePassword($password);
     }
 
-    public function encodePassword($password) {
-        return $this->digester->encodePassword($password, '');
+    /**
+     * encode password according to the what is expected
+     * @param string $password
+     * @param string $salt
+     * @return string
+     */
+    public function encodePassword($password, $salt='') {
+        return $this->digester->encodePassword($password, $salt);
     }
 }

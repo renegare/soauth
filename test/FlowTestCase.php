@@ -12,11 +12,11 @@ class FlowTestCase extends WebtestCase {
     protected function configureApplication(Application $app) {
         parent::configureApplication($app);
 
-        $app['soauth.access.user.provider.config'] = [
+        $app['soauth.user.provider.config'] = [
             'test@example.com' => ['password' => $app['security.encoder.digest']->encodePassword('Password123', ''), 'roles' => ['ROLE_USER'], 'enabled' => true]
         ];
 
-        $app['soauth.access.client.provider.config'] = [
+        $app['soauth.client.provider.config'] = [
             '1' => [
                 'name' => 'Example Client',
                 'domain' => 'client.com',

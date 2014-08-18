@@ -25,17 +25,22 @@ class Client implements ClientInterface {
     }
 
     /**
-     * get client name
-     * @return string
+     * {@inheritdoc}
      */
     public function getName() {
         return $this->name;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isActive() {
         return !!$this->active;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getDomain() {
         return $this->domain;
     }

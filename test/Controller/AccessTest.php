@@ -20,7 +20,7 @@ class AccessTest extends WebTestCase {
      * mock out all dependencies ... cause we can!
      */
     public function setUp() {
-        $this->mockAccessProvider = $this->getMock('Renegare\Soauth\AccessProviderInterface');
+        $this->mockAccessProvider = $this->getMock('Renegare\Soauth\SecurityAccessProviderInterface');
         $app = $this->createApplication(true);
         $app['soauth.access.provider'] = $this->mockAccessProvider;
         $this->app = $app;

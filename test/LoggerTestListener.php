@@ -24,33 +24,6 @@ class LoggerTestListener extends \PHPUnit_Framework_BaseTestListener {
     /**
      * {@inheritdoc}
      */
-    public function addIncompleteTest(\PHPUnit_Framework_Test $test, \Exception $e, $time) {}
-
-    /**
-     * {@inheritdoc}
-     */
-    public function addRiskyTest(\PHPUnit_Framework_Test $test, \Exception $e, $time) {}
-
-    /**
-     * {@inheritdoc}
-     */
-    public function addSkippedTest(\PHPUnit_Framework_Test $test, \Exception $e, $time) {}
-
-    /**
-     * {@inheritdoc}
-     */
-    public function startTestSuite(\PHPUnit_Framework_TestSuite $suite) {}
-
-    /**
-     * {@inheritdoc}
-     */
-    public function endTestSuite(\PHPUnit_Framework_TestSuite $suite) {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function startTest(\PHPUnit_Framework_Test $test) {
         // print_r(get_class_methods($test)); die;
         $this->error = false;

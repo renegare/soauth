@@ -2,7 +2,7 @@
 
 namespace Renegare\Soauth;
 
-interface AccessClientProviderInterface {
+interface ClientProviderInterface {
     /**
      * find client given an id
      * @param string|integer $id - unique client identifier
@@ -10,5 +10,11 @@ interface AccessClientProviderInterface {
      */
     public function getClient($id);
 
+    /**
+     * validate client
+     * @param ClientInterface $client
+     * @param string $redirectUri - requested callback url
+     * @return boolean
+     */
     public function isValid(ClientInterface $client, $redirectUri);
 }

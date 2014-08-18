@@ -2,7 +2,7 @@
 
 namespace Renegare\Soauth;
 
-class MockAccessStorageHandler implements AccessStorageHandlerInterface {
+class MockStorageHandler implements StorageHandlerInterface {
 
     protected $credentialStore = [];
 

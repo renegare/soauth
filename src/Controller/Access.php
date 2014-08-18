@@ -22,10 +22,18 @@ class Access extends AbstractController {
     /** @var AccessProviderInterface */
     protected $accessProvider;
 
+    /**
+     * @param AccessProviderInterface $accessProvider
+     */
     public function setAccessProvider(AccessProviderInterface $accessProvider) {
         $this->accessProvider = $accessProvider;
     }
 
+    /**
+     * exchange auth for an access code
+     * @param $request
+     * @return string|Response
+     */
     public function exchangeAction(Request $request) {
         try {
             $authCode = $this->getAuthCode($request);
@@ -53,6 +61,11 @@ class Access extends AbstractController {
         return $response;
     }
 
+    /**
+     * refresh a given access credentials
+     * @param $request
+     * @return string|Response
+     */
     public function refreshAction(Request $request) {
         try {
             $refreshCode = $this->getRefreshCode($request);

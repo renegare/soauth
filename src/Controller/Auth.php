@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 use Renegare\Soauth\RendererInterface;
 use Renegare\Soauth\AccessProviderInterface;
-use Renegare\Soauth\AccessClientProviderInterface;
+use Renegare\Soauth\ClientProviderInterface;
 use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\AbstractController;
 use Renegare\Soauth\SoauthException;
@@ -23,12 +23,22 @@ class Auth extends AbstractController {
     protected $accessProvider;
     protected $clientProvider;
 
-    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, AccessClientProviderInterface $clientProvider) {
+    /**
+     * @param RendererInterface $renderer
+     * @param AccessProviderInterface $accessProvider
+     * @param ClientProviderInterface $clientProvider
+     */
+    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, ClientProviderInterface $clientProvider) {
         $this->renderer = $renderer;
         $this->accessProvider = $accessProvider;
         $this->clientProvider = $clientProvider;
     }
 
+    /**
+     * verify authentication request and display entry point to authenticate
+     * @param $request
+     * @return string|Response
+     */
     public function signinAction(Request $request) {
         try {
             $data = $this->getAuthClientIdentifiers($request);
@@ -41,7 +51,7 @@ class Auth extends AbstractController {
             }
 
             $data['client'] = $client;
-            
+
             $this->info('> Sign in request', ['method' => $request->getMethod(), 'query' => $data]);
             $response = new Response($this->renderer->renderSignInForm($data));
         } catch (BadDataException $e) {
@@ -56,6 +66,11 @@ class Auth extends AbstractController {
         return $response;
     }
 
+    /**
+     * authenticate user
+     * @param $request
+     * @return string|Response
+     */
     public function authenticateAction(Request $request) {
         $data = $request->request->all();
         try {

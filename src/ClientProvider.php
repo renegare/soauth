@@ -2,10 +2,21 @@
 
 namespace Renegare\Soauth;
 
-class AccessClientProvider implements AccessClientProviderInterface {
+class ClientProvider implements ClientProviderInterface {
 
     protected $clientStore;
 
+    /**
+     * @param array $clientStore - list of clients
+     * e.g (were the array key is the id of the client)
+     * [
+     *     '1' => [
+     *         'name' => 'Example Client',
+     *         'domain' => 'client.com',
+     *         'active' => true
+     *     ]
+     * ]
+     */
     public function __construct(array $clientStore = []) {
         $this->clientStore = $clientStore;
     }
@@ -21,6 +32,9 @@ class AccessClientProvider implements AccessClientProviderInterface {
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isValid(ClientInterface $client, $redirectUri) {
         $pattern = sprintf('/^https?:\\/\\/.*%s(?:\\/.*)?$/', preg_replace('/\./', '\\.', $client->getDomain()));
         return $client->isActive() && preg_match($pattern, $redirectUri);
