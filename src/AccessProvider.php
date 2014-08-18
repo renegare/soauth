@@ -19,7 +19,7 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
      * @param ClientProvider $client
      * @param UserProvider $user
      */
-    public function __construct(StorageHandlerInterface $storage, ClientProvider $client, UserProvider $user) {
+    public function __construct(StorageHandlerInterface $storage, ClientProviderInterface $client, UserProviderInterface $user) {
         $this->storage = $storage;
         $this->clientProvider = $client;
         $this->userProvider = $user;
@@ -56,8 +56,18 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     /**
      * {@inheritdoc}
      */
-    public function exchange($authCode) {
-        return $this->storage->getAuthCodeCredentials($authCode);
+    public function exchange($authCode, $clientSecret) {
+        $credentials = $this->storage->getAuthCodeCredentials($authCode);
+        $client = $this->getClient($credentials->getClientId());
+        if($client->getSecret() !== $clientSecret) {
+            $this->error('Incorrect client secret', [
+                'secret' => $clientSecret,
+                'client_id' => $client->getId()
+            ]);
+            throw new SoauthException('Incorrect client secret');
+        }
+
+        return $credentials;
     }
 
     /**
@@ -107,7 +117,7 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     }
 
     protected function getUser($username) {
-        if(!($user = $this->userProvider->getUsernameUser($username))) {
+        if(!($user = $this->userProvider->getUser($username))) {
             throw new SoauthException(sprintf('No user found with username %s', $username));
         }
         return $user;

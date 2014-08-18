@@ -10,6 +10,7 @@ class RefreshFlowTest extends FlowTestCase {
 
     protected $app;
     protected $credentials;
+    protected $clientSecret;
 
     public function setUp() {
         $app = $this->createApplication(true);
@@ -31,8 +32,9 @@ class RefreshFlowTest extends FlowTestCase {
         $redirectTargetUrl = $response->getTargetUrl();
 
         // exchange for access code
+        $this->clientSecret = 'cl13nt53crt';
         $code = explode('?code=', $redirectTargetUrl)[1];
-        $client = $this->createClient([], $app);
+        $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $this->clientSecret], $app);
         $client->request('POST', '/auth/access', ['code' => $code]);
         $response = $client->getResponse();
 
@@ -53,6 +55,7 @@ class RefreshFlowTest extends FlowTestCase {
     public function testFlow() {
         // ensure we have access
         $accessCode = $this->credentials['access_code'];
+
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
         $client->request('GET', '/verify-access-token');
         $response = $client->getResponse();
@@ -62,7 +65,7 @@ class RefreshFlowTest extends FlowTestCase {
 
         // refresh access
         $code = $this->credentials['refresh_code'];
-        $client = $this->createClient([], $this->app);
+        $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $this->clientSecret], $this->app);
         $client->request('PUT', '/auth/access', ['refresh_code' => $code]);
         $response = $client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());

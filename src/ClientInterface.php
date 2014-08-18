@@ -28,4 +28,10 @@ interface ClientInterface {
      */
     public function getDomain();
 
+    /**
+     * get client secret
+     * @return string
+     */
+    public function getSecret();
+
 }

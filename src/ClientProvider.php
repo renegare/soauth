@@ -27,7 +27,7 @@ class ClientProvider implements ClientProviderInterface {
     public function getClient($id) {
         foreach($this->clientStore as $clientId => $client) {
             if((integer) $clientId === (integer) $id) {
-                return new Client($clientId, $client['name'], $client['domain'], $client['active']);
+                return new Client($clientId, $client['name'], $client['domain'], $client['secret'], isset($client['active'])? $client['active'] : true);
             }
         }
     }

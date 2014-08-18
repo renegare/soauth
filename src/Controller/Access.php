@@ -39,8 +39,8 @@ class Access extends AbstractController {
             $authCode = $this->getAuthCode($request);
             $this->info('> Exchange request', ['method' => $request->getMethod(), 'auth_code' => $authCode]);
 
-            $credentials = $this->accessProvider->exchange($authCode);
-
+            $clientSecret = $this->getClientSecret($request);
+            $credentials = $this->accessProvider->exchange($authCode, $clientSecret);
             $response = new JsonResponse([
                 'access_code' => $credentials->getAccessCode(),
                 'refresh_code' => $credentials->getRefreshCode(),
@@ -70,7 +70,8 @@ class Access extends AbstractController {
         try {
             $refreshCode = $this->getRefreshCode($request);
 
-            $credentials = $this->accessProvider->refresh($request, $refreshCode);
+            $clientSecret = $this->getClientSecret($request);
+            $credentials = $this->accessProvider->refresh($request, $refreshCode, $clientSecret);
 
             $response = new JsonResponse([
                 'access_code' => $credentials->getAccessCode(),
@@ -110,5 +111,9 @@ class Access extends AbstractController {
         $this->validate($constraints, $data);
 
         return $data['refresh_code'];
+    }
+
+    protected function getClientSecret(Request $request) {
+        return $request->headers->get('X-CLIENT-SECRET', '');
     }
 }

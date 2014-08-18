@@ -10,7 +10,7 @@ interface UserProviderInterface {
      * find user given a username
      * @return UserInterface|string|null
      */
-    public function getUsernameUser($username);
+    public function getUser($username);
 
     /**
      * validate user

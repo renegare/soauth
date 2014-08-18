@@ -29,29 +29,30 @@ class AccessTest extends WebTestCase {
 
     public function provideExchangeActionTestCases(){
         return [
-            ['Valid request', 'fake-auth-code=', [
+            ['Valid request', 'fake-auth-code=', 'cl13nt53cr3t!', [
                 'access_code' => 'fake-access-code=',
                 'refresh_code' => 'fake-refresh-code=',
                 'lifetime' => '3600'
             ]],
 
-            ['Request made with no code', null, null, ['code']],
+            ['Request made with no code', null, 'cl13nt53cr3t!', null, ['code']],
 
-            ['Request made with invalid code', '', null, ['code']],
+            ['Request made with invalid code', '', 'cl13nt53cr3t!', null, ['code']],
 
-            ['Exception is thrown by accessProvider::exchange', 'fake-auth-code=', null, null, true]
+            ['Exception is thrown by accessProvider::exchange', 'fake-auth-code=', 'cl13nt53cr3t!', null, null, true]
         ];
     }
 
     /**
      * @dataProvider provideExchangeActionTestCases
      */
-    public function testExchangeAction($testCaseLabel, $expectedAuthCode, array $expectedAccessCredentials = null, array $expectedValidationError = null, $expectedAccessProviderException = false) {
+    public function testExchangeAction($testCaseLabel, $expectedAuthCode, $expectedClientSecret, array $expectedAccessCredentials = null, array $expectedValidationError = null, $expectedAccessProviderException = false) {
 
         $expectedSuccess = !$expectedValidationError && !$expectedAccessProviderException;
 
         $this->mockAccessProvider->expects($this->any())
-            ->method('exchange')->will($this->returnCallback(function($authCode) use ($expectedAuthCode, $expectedAccessCredentials, $expectedAccessProviderException, $testCaseLabel){
+            ->method('exchange')->will($this->returnCallback(function($authCode, $clientSecret) use ($expectedAuthCode, $expectedAccessCredentials, $expectedAccessProviderException, $testCaseLabel, $expectedClientSecret){
+                $this->assertEquals($expectedClientSecret, $clientSecret);
                 $this->assertEquals($expectedAuthCode, $authCode, $testCaseLabel);
 
                 if($expectedAccessProviderException) {
@@ -66,7 +67,7 @@ class AccessTest extends WebTestCase {
                 return $mockCredentials;
             }));
 
-        $client = $this->createClient([], $this->app);
+        $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $expectedClientSecret], $this->app);
         $client->followRedirects(false);
         $client->request('POST', '/auth/access', $expectedAuthCode? ['code' => $expectedAuthCode] : []);
 
@@ -87,29 +88,30 @@ class AccessTest extends WebTestCase {
 
     public function provideRefreshActionTestCases() {
         return [
-            ['Valid Request', 'fake-refresh-code=', [
+            ['Valid Request', 'fake-refresh-code=', 'cl13nt53cr3t!', [
                 'access_code' => 'new-fake-access-code=',
                 'refresh_code' => 'new-fake-refresh-code=',
                 'lifetime' => '3600'
             ]],
 
-            ['Invalid Request #1', '', null, ['refresh_code']],
-            ['Invalid Request #2', null, null, ['refresh_code']],
+            ['Invalid Request #1', '', 'cl13nt53cr3t!', null, ['refresh_code']],
+            ['Invalid Request #2', null, 'cl13nt53cr3t!', null, ['refresh_code']],
 
-            ['Exception is thrown by accessProvider::exchange', 'fake-refresh-code=', null, null, true]
+            ['Exception is thrown by accessProvider::exchange', 'fake-refresh-code=', 'cl13nt53cr3t!', null, null, true]
         ];
     }
 
     /**
      * @dataProvider provideRefreshActionTestCases
      */
-    public function testRefreshAction($testCaseLabel, $expectedRefreshCode, $expectedAccessCredentials = null, array $expectedValidationError = null, $expectedAccessProviderException = false) {
+    public function testRefreshAction($testCaseLabel, $expectedRefreshCode, $expectedClientSecret, $expectedAccessCredentials = null, array $expectedValidationError = null, $expectedAccessProviderException = false) {
 
         $expectedSuccess = !$expectedValidationError && !$expectedAccessProviderException;
 
         $this->mockAccessProvider->expects($expectedValidationError? $this->never() : $this->once())
-            ->method('refresh')->will($this->returnCallback(function(Request $request, $refreshCode) use ($expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel, $expectedAccessProviderException){
+            ->method('refresh')->will($this->returnCallback(function(Request $request, $refreshCode, $clientSecret) use ($expectedClientSecret, $expectedRefreshCode, $expectedAccessCredentials, $testCaseLabel, $expectedAccessProviderException){
                 $this->assertEquals($expectedRefreshCode, $refreshCode, $testCaseLabel);
+                $this->assertEquals($expectedClientSecret, $clientSecret);
 
                 if($expectedAccessProviderException) {
                     throw new SoauthException('Some error!');
@@ -123,7 +125,7 @@ class AccessTest extends WebTestCase {
                 return $mockCredentials;
             }));
 
-        $client = $this->createClient([], $this->app);
+        $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $expectedClientSecret], $this->app);
         $client->followRedirects(false);
         $client->request('PUT', '/auth/access', $expectedRefreshCode? ['refresh_code' => $expectedRefreshCode] : []);
 

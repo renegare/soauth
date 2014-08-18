@@ -9,19 +9,22 @@ use Symfony\Component\HttpFoundation\Response;
 
 class GrantFlowTest extends FlowTestCase {
 
-    public function provideTestAuthenticateDatasets() {
+    public function provideTestFlowDatasets() {
         return [
-            [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123'],
-            [false, 1, 'http://client.com/cb', 'incorrect@example.com', 'Password123'],
-            [false, 1, 'http://client.com/cb', 'test@example.com', 'IncorrectPassword123'],
-            [false, 2, 'http://client.com/cb', 'test@example.com', 'Password123'],
-            [false, 1, 'http://not.same.domain.com/cb', 'test@example.com', 'Password123']
+            [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
+            [false, 1, 'http://client.com/cb', 'incorrect@example.com', 'Password123', 'cl13nt53crt'],
+            [false, 1, 'http://client.com/cb', 'test@example.com', 'IncorrectPassword123', 'cl13nt53crt'],
+            [false, 2, 'http://client.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
+            [false, 3, 'http://client.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
+            [false, 1, 'http://not.same.domain.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
+            [false, 1, 'http://client.com/cb', 'test@example.com', 'Password123', 'Inc0rr3ct!cl13nt53crt'],
+            [false, 1, 'http://client.com/cb', 'test@example.com', 'Password123']
         ];
     }
     /**
-     * @dataProvider provideTestAuthenticateDatasets
+     * @dataProvider provideTestFlowDatasets
      */
-    public function testAuthenticate($expectToSucceed, $clientId, $redirectUri, $username, $password) {
+    public function testFlow($expectToSucceed, $clientId, $redirectUri, $username, $password, $clientSecret = null) {
         $app = $this->createApplication(true);
 
         $verifyAccessTokenCb = null;
@@ -73,13 +76,22 @@ class GrantFlowTest extends FlowTestCase {
 
         // server flow (exchange for access code)
         $code = explode('?code=', $redirectTargetUrl)[1];
-        $client = $this->createClient([], $app);
+        if($clientSecret) {
+            $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $clientSecret], $app);
+        } else {
+            $client = $this->createClient([], $app);
+        }
         $client->request('POST', '/auth/access', ['code' => $code]);
         $response = $client->getResponse();
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $credentials = json_decode($response->getContent(), true);
+
+        if($response->getStatusCode() !== Response::HTTP_OK) {
+            $this->assertFalse($expectToSucceed);
+            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
+            return;
+        }
 
         // set test to verify security access token and X-ACCESS-CODE header on client
+        $credentials = json_decode($response->getContent(), true);
         $accessCode = $credentials['access_code'];
         $verifyAccessTokenCb = function(Application $app) use ($accessCode, $username, $clientId){
             $token = $app['security']->getToken();

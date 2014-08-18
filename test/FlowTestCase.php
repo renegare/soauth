@@ -20,7 +20,14 @@ class FlowTestCase extends WebtestCase {
             '1' => [
                 'name' => 'Example Client',
                 'domain' => 'client.com',
-                'active' => true
+                'active' => true,
+                'secret' => 'cl13nt53crt'
+            ],
+            '2' => [
+                'name' => 'Example Client',
+                'domain' => 'client.com',
+                'active' => false,
+                'secret' => 'cl13nt53crt'
             ]
         ];
 

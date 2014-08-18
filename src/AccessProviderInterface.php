@@ -19,10 +19,11 @@ interface AccessProviderInterface {
 
     /**
      * get access credentials for the given auth code
-     * @param $authCode string
+     * @param string $authCode
+     * @param string $clientSecret
      * @return CredentialsInterface
      */
-    public function exchange($authCode);
+    public function exchange($authCode, $clientSecret);
 
     /**
      * generate a new set of credentials from the old one

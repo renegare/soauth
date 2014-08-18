@@ -17,6 +17,7 @@ class WebTestCase extends \Silex\WebTestCase {
         if(!$app) {
             $app = $this->createApplication();
         }
+        
         return new Client($app, $server);
     }
 
@@ -32,7 +33,7 @@ class WebTestCase extends \Silex\WebTestCase {
 
         $app['debug'] = true;
         $app['soauth.test'] = true;
-        
+
         return $app;
     }
 

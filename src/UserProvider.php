@@ -19,7 +19,7 @@ class UserProvider implements UserProviderInterface {
     /**
      * {@inheritdoc}
      */
-    public function getUsernameUser($usernameKey) {
+    public function getUser($usernameKey) {
         foreach($this->userStore as $username => $user) {
             if($username === $usernameKey) {
                 return new User($username, $user['password'], isset($user['roles'])? $user['roles'] : [], isset($user['enabled'])? !!$user['enabled'] : []);
