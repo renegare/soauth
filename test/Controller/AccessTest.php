@@ -69,7 +69,7 @@ class AccessTest extends WebTestCase {
 
         $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $expectedClientSecret], $this->app);
         $client->followRedirects(false);
-        $client->request('POST', '/auth/access', [], [], [], $expectedAuthCode? json_encode(['code' => $expectedAuthCode]) : null);
+        $client->request('POST', '/auth/access/', [], [], [], $expectedAuthCode? json_encode(['code' => $expectedAuthCode]) : null);
 
         $response = $client->getResponse();
         $responseData = json_decode($response->getContent(), true);
@@ -127,7 +127,7 @@ class AccessTest extends WebTestCase {
 
         $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $expectedClientSecret], $this->app);
         $client->followRedirects(false);
-        $client->request('PUT', '/auth/access', $expectedRefreshCode? ['refresh_code' => $expectedRefreshCode] : []);
+        $client->request('PUT', '/auth/access/', $expectedRefreshCode? ['refresh_code' => $expectedRefreshCode] : []);
 
         $response = $client->getResponse();
         $responseData = json_decode($response->getContent(), true);

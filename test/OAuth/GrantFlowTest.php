@@ -81,7 +81,7 @@ class GrantFlowTest extends FlowTestCase {
         } else {
             $client = $this->createClient([], $app);
         }
-        $client->request('POST', '/auth/access', [], [], [], json_encode(['code' => $code]));
+        $client->request('POST', '/auth/access/', [], [], [], json_encode(['code' => $code]));
         $response = $client->getResponse();
 
         if($response->getStatusCode() !== Response::HTTP_OK) {

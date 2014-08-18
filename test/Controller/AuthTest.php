@@ -102,7 +102,6 @@ class AuthTest extends WebTestCase {
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
         $crawler = $client->request('GET', '/auth/', $requestQuery);
-
         $response = $client->getResponse();
 
         if($expectToSucceed) {
