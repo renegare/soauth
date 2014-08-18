@@ -1,20 +1,24 @@
 {
     "name": "renegare/soauth",
-
+    "description": "Simple Silex OAuth2 Provider",
+    "keywords": ["oauth2", "silex", "validator", "renegare"],
+    "license": "MIT",
     "autoload": {"psr-4": {"Renegare\\Soauth\\": "src"}},
 
     "require": {
         "php": ">=5.4.0",
-        "symfony/validator": ">=2.4,<2.5.3",
-            "silex/silex": ">1.1,<=1.2.1"
+        "symfony/http-foundation": ">=2.4,<2.6-dev",
+        "symfony/validator": ">=2.4,<2.5.3"
     },
 
     "require-dev": {
+        "symfony/security": ">=2.5.0",
+        "silex/silex": ">=1.0",
         "phpunit/phpunit": "4.1.*",
         "symfony/process": "v2.5.0",
         "symfony/browser-kit": "v2.5.0",
         "symfony/css-selector": "v2.5.0",
-        "symfony/security": ">=2.5.0"
+        "satooshi/php-coveralls": "dev-master"
     },
 
     "scripts": {
