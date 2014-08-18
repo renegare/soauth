@@ -96,9 +96,9 @@ class Access extends AbstractController {
     protected function getAuthCode(Request $request) {
         $constraints = ['code' => [new NotBlank]];
 
-        $data = ['code' => $request->request->get('code')];
+        $data = @json_decode($request->getContent(), true);
 
-        $this->validate($constraints, $data);
+        $this->validate($constraints, $data? $data : []);
 
         return $data['code'];
     }

@@ -36,7 +36,7 @@ class RefreshFlowTest extends FlowTestCase {
         $this->clientSecret = 'cl13nt53crt';
         $code = explode('?code=', $redirectTargetUrl)[1];
         $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $this->clientSecret], $app);
-        $client->request('POST', '/auth/access', ['code' => $code]);
+        $client->request('POST', '/auth/access', [], [], [], json_encode(['code' => $code]));
         $response = $client->getResponse();
 
         $this->credentials = json_decode($response->getContent(), true);
