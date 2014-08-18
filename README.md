@@ -1,5 +1,7 @@
 # SOAuth - Simple Silex OAuth2 Provider
 
+[![Build Status](https://travis-ci.org/renegare/soauth.png?branch=master)](https://travis-ci.org/renegare/soauth)
+
 currently only supports the following flows:
 
 * Authorization Code

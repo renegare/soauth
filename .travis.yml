@@ -10,13 +10,18 @@ php:
   - 5.6
   - hhvm
 
+env:
+  - SILEX_VERSION=1.2.*
+  - SILEX_VERSION=1.1.*
+  - SILEX_VERSION=1.0.*
+
 before_script:
   - php -r "eval('?>'.file_get_contents('https://getcomposer.org/installer'));"
-  - php composer.phar install --dev --no-interaction --prefer-dist
+  - php composer.phar require --dev --no-interaction --prefer-dist silex/silex:${SILEX_VERSION}
 
 script:
     - mkdir -p build/logs
-    - vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
+    - composer test -- --coverage-text --coverage-clover build/logs/clover.xml
 
 after_script:
  - php vendor/bin/coveralls -v
