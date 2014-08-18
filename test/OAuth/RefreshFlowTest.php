@@ -11,6 +11,7 @@ class RefreshFlowTest extends FlowTestCase {
     protected $app;
     protected $credentials;
     protected $clientSecret;
+    protected $verifyAccessTokenCb;
 
     public function setUp() {
         $app = $this->createApplication(true);
