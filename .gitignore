@@ -2,3 +2,4 @@
 vendor/
 .tmp/
 coverage_report/
+composer.lock
