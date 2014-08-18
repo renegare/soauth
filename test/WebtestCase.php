@@ -17,7 +17,7 @@ class WebTestCase extends \Silex\WebTestCase {
         if(!$app) {
             $app = $this->createApplication();
         }
-        
+
         return new Client($app, $server);
     }
 
@@ -74,8 +74,6 @@ class WebTestCase extends \Silex\WebTestCase {
         });
 
         $app['logger'] = $this->getMockLogger();
-
-        // print_r(get_class_methods($this)); die;
     }
 
     public function getMockLogger() {
@@ -85,7 +83,4 @@ class WebTestCase extends \Silex\WebTestCase {
 
         return $this->mockLogger;
     }
-
-    // public function getDataSetName
-
 }
