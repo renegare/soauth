@@ -60,7 +60,10 @@ class MockStorageHandler implements StorageHandlerInterface {
 
     protected function findCredentials(\Closure $callback) {
         $matches = array_filter($this->credentialStore, $callback);
-
-        return count($matches) > 0 ? $matches[0][0] : null;
+        $credentials = null;
+        if(count($matches) > 0) {
+            $credentials = array_shift($matches)[0];
+        }
+        return $credentials;
     }
 }
