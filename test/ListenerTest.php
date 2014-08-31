@@ -52,6 +52,7 @@ class ListenerTest extends WebTestCase {
         $content = $response->getContent();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
         $this->assertEquals('Access Granted', $content);
+        die;
     }
 
     public function testAccessDeniedForInvalidAuthorizedUser() {
