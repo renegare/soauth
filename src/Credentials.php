@@ -68,4 +68,11 @@ class Credentials implements CredentialsInterface {
     public function getClientId() {
         return $this->clientId;
     }
+
+    /**
+     * @return $array
+     */
+    public function toArray() {
+        return get_object_vars($this);
+    }
 }

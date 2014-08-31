@@ -17,8 +17,9 @@ interface StorageHandlerInterface {
     /**
      * Save credentials
      * @param CredentialsInterface $credentials
+     * @param int $createdTime
      */
-    public function save(CredentialsInterface $credentials);
+    public function save(CredentialsInterface $credentials, $createdTime = null);
 
     /**
      * Retrieve credentials using $accessCode

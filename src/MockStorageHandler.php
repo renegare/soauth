@@ -9,8 +9,8 @@ class MockStorageHandler implements StorageHandlerInterface {
     /**
      * {@inheritdoc}
      */
-    public function save(CredentialsInterface $credentials) {
-        $this->credentialStore[] = [$credentials, time()];
+    public function save(CredentialsInterface $credentials, $createdTime = null) {
+        $this->credentialStore[] = [$credentials, $createdTime? $createdTime : time()];
     }
 
     /**
