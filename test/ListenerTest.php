@@ -39,14 +39,14 @@ class ListenerTest extends WebTestCase {
         $this->mockAccessProvider->expects($this->once())->method('getSecurityToken')
             ->will($this->returnCallback(function($accessCode) use ($expectedAccessCode) {
                 $this->assertEquals($expectedAccessCode, $accessCode);
-                return $this->getMockBuilder('Renegare\Soauth\SecurityToken')
+                $mockSecurityToken = $this->getMockBuilder('Renegare\Soauth\SecurityToken')
                     ->disableOriginalConstructor()
                     ->getMock()
                     ;
+                return $mockSecurityToken;
             }));
 
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $expectedAccessCode], $this->app);
-
         $client->request('GET', '/api');
         $response = $client->getResponse();
         $content = $response->getContent();

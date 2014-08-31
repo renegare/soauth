@@ -38,7 +38,7 @@ class Listener implements ListenerInterface, LoggerInterface {
         try {
             $token = $this->getAccessToken($request);
             $this->info('User appears to be logged in already. #Noop', [
-                'client_id' => $token->getClient()->getId(),
+                'client_id' => $token->getClientId(),
                 'username' => $token->getUsername()
             ]);
             $this->securityContext->setToken($token);

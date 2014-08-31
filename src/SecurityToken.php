@@ -31,4 +31,12 @@ class SecurityToken extends AbstractToken {
     public function getCredentials() {
         return null;
     }
+
+    /**
+     * return clients id
+     * @return int|string
+     */
+    public function getClientId() {
+        return $this->client? $this->client->getId() : null;
+    }
 }
