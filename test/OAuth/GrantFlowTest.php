@@ -95,6 +95,7 @@ class GrantFlowTest extends FlowTestCase {
         $accessCode = $credentials['access_code'];
         $verifyAccessTokenCb = function(Application $app) use ($accessCode, $username, $clientId){
             $token = $app['security']->getToken();
+            $this->assertTrue($token->isAuthenticated());
             $this->assertEquals($username, $token->getUsername());
             $this->assertEquals($clientId, $token->getClient()->getId());
         };
