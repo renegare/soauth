@@ -98,6 +98,9 @@ class GrantFlowTest extends FlowTestCase {
             $this->assertTrue($token->isAuthenticated());
             $this->assertEquals($username, $token->getUsername());
             $this->assertEquals($clientId, $token->getClient()->getId());
+            $roles = $token->getRoles();
+            $this->assertCount(1, $roles);
+            $this->assertEquals('ROLE_USER', $roles[0]->getRole());
         };
 
         $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $app);
