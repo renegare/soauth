@@ -12,9 +12,16 @@ class SecurityToken extends AbstractToken {
     /**
      * @param Access $access
      */
-    public function __construct(Access $access) {
-        parent::__construct([]);
+    public function __construct(Access $access, array $roles = []) {
+        parent::__construct($roles);
         $this->access = $access;
+    }
+
+    /**
+     * @return Access
+     */
+    public function getAccess() {
+        return $this->access;
     }
 
     /**
@@ -22,6 +29,6 @@ class SecurityToken extends AbstractToken {
      * @return Access
      */
     public function getCredentials() {
-        return $this->access;
+        return $this->getAccess();
     }
 }

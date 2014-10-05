@@ -70,13 +70,15 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
             throw new SoauthException(sprintf('No credenitials found with access code %s', $accessToken));
         }
 
+        $roles = [];
         if($credentials instanceOf AuthorizationCodeAccess) {
             $user = $this->getUser($credentials->getUsername());
+            $roles = $user->getRoles();
         } else if($credentials instanceOf ClientCredentialsAccess) {
             $user = $this->getClient($credentials->getClientId());
         }
 
-        $token = new SecurityToken($credentials);
+        $token = new SecurityToken($credentials, $roles);
         $token->setAuthenticated(true);
         $token->setUser($user);
         return $token;

@@ -101,11 +101,12 @@ class AuthorizationCodeTest extends FlowTestCase {
         $accessCode = $credentials['access_token'];
 
         $verifyAccessTokenCb = function(Application $app) use ($accessCode, $username, $clientId){
-            return;
             $token = $app['security']->getToken();
             $this->assertTrue($token->isAuthenticated());
             $this->assertEquals($username, $token->getUsername());
-            $this->assertEquals($clientId, $token->getClient()->getId());
+            $access = $token->getAccess();
+            $this->assertInstanceOf('Renegare\Soauth\Access\AuthorizationCodeAccess', $access);
+            $this->assertEquals($clientId, $access->getClientId());
             $roles = $token->getRoles();
             $this->assertCount(1, $roles);
             $this->assertEquals('ROLE_USER', $roles[0]->getRole());
