@@ -2,7 +2,9 @@
 
 namespace Renegare\Soauth;
 
-interface ClientInterface {
+use Symfony\Component\Security\Core\User\UserInterface;
+
+interface ClientInterface extends UserInterface {
 
     /**
      * return the client identifier

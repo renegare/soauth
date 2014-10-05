@@ -59,4 +59,39 @@ class Client implements ClientInterface {
         return $this->secret;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getRoles() {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPassword() {
+        return $this->getSecret;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getSalt() {
+        return null;
+    }
+
+     /**
+      * {@inheritdoc}
+      */
+    public function getUsername() {
+        return $this->id;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function eraseCredentials() {
+        $this->id = null;
+        $this->secret = null;
+    }
 }

@@ -13,7 +13,19 @@ class ClientCredentialsTest extends FlowTestCase {
     public function testFlow() {
         $app = $this->createApplication(true);
 
-        $app->get('/client-resource', function() {
+        $app['soauth.client.provider.config'] = [
+            '1' => [
+                'name' => 'Example Client',
+                'domain' => 'someclient.com',
+                'active' => true,
+                'secret' => 'cl13nt53crt'
+            ]
+        ];
+
+        $app->get('/client-resource', function() use ($app) {
+            $user = $app['security']->getToken()->getUser();
+            $this->assertInstanceOf('Renegare\Soauth\ClientInterface', $user);
+            $this->assertEquals('someclient.com', $user->getDomain());
             return 'All Good!';
         });
 

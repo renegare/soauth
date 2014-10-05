@@ -103,11 +103,11 @@ class Auth extends AbstractController {
         $clientSecret = $requestData->get('client_secret', null);
 
         if(!($client = $this->clientProvider->getClient($clientId))) {
-            throw new SoauthException(sprintf('No client found with id %s', $client_id));
+            throw new SoauthException(sprintf('No client found with id %s', $clientId));
         }
 
         if(!($client->getSecret() === $clientSecret && $client->isActive())) {
-            throw new SoauthException(sprintf('No client found with id %s', $client_id));
+            throw new SoauthException(sprintf('No client found with id %s', $clientId));
         }
 
         $credentials = $this->accessProvider->generateClientCredentialsAccess($client);
