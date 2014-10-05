@@ -5,16 +5,24 @@ namespace Renegare\Soauth;
 use Symfony\Component\HttpFoundation\Request;
 use Renegare\Soauth\Access\ClientCredentialsAccess;
 use Renegare\Soauth\Access\AuthorizationCodeAccess;
+use Renegare\Soauth\Access\Access;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 interface AccessProviderInterface {
+    /**
+     * generate authorization code access
+     * @param UserInterface $user
+     * @param ClientInterface $client
+     * @return AuthorizationCodeAccess
+     */
+    public function generateAuthorizationCodeAccess(UserInterface $user, ClientInterface $client);
 
     /**
-     * get access credentials for the given auth code
-     * @param string $authCode
-     * @param string $clientSecret
-     * @return CredentialsInterface
+     * generate client credentials access
+     * @param ClientInterface $client
+     * @return ClientCredentialsAccess
      */
-    public function exchange($authCode, $clientSecret);
+    public function generateClientCredentialsAccess(ClientInterface $client);
 
     /**
      * generate a new set of credentials from the old one
@@ -22,24 +30,14 @@ interface AccessProviderInterface {
      * @param $refreshCode string
      * @return CredentialsInterface
      */
-    public function refresh(Request $request, $refreshCode);
+    public function refreshToken(Access $access);
 
     /**
-     * generate and store access credentials
-     * @todo needs to change!!!
-     * @param Request $request
-     * @param string $clientId
-     * @param string $redirectUri
-     * @param string $username
-     * @param string $password [optional]
-     * @return AuthorizationCodeAccess
+     * get access credentials for the given auth code
+     * @todo ... rethink this?!
+     * @param string $authCode
+     * @param string $clientSecret
+     * @return CredentialsInterface
      */
-    public function generateAuthorizationCodeAccess(Request $request, $clientId, $redirecUri, $username, $password = '');
-
-    /**
-     * generate client access credentials
-     * @param ClientInterface $client
-     * @return ClientCredentialsAccess
-     */
-    public function generateClientCredentialsAccess(ClientInterface $client);
+    public function exchange($authCode, $clientSecret);
 }

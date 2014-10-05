@@ -14,6 +14,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Renegare\Soauth\RendererInterface;
 use Renegare\Soauth\AccessProviderInterface;
 use Renegare\Soauth\ClientProviderInterface;
+use Renegare\Soauth\UserProviderInterface;
 use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\AbstractController;
 use Renegare\Soauth\SoauthException;
@@ -21,24 +22,31 @@ use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
 
 class Auth extends AbstractController {
 
+    // supported grant types
     const GT_AUTHORIZATION_CODE = 'authorization_code';
     const GT_CLIENT_CREDENTIALS = 'client_credentials';
+
+    // supported request types
+    const RT_CODE = 'code';
 
     protected $renderer;
     protected $accessProvider;
     protected $clientProvider;
     protected $credentialStore;
+    protected $userProvider;
 
     /**
      * @param RendererInterface $renderer
      * @param AccessProviderInterface $accessProvider
      * @param ClientProviderInterface $clientProvider
+     * @param UserProviderInterface $userProvider
      * @param StorageHandlerInterface $store
      */
-    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, ClientProviderInterface $clientProvider, AccessStorageHandlerInterface $store) {
+    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, ClientProviderInterface $clientProvider, UserProviderInterface $userProvider, AccessStorageHandlerInterface $store) {
         $this->renderer = $renderer;
         $this->accessProvider = $accessProvider;
         $this->clientProvider = $clientProvider;
+        $this->userProvider = $userProvider;
         $this->credentialStore = $store;
     }
 
@@ -49,6 +57,12 @@ class Auth extends AbstractController {
      */
     public function signinAction(Request $request) {
         try {
+            $responseType = $request->query->get('response_type');
+
+            if($responseType !== self::RT_CODE) {
+                throw new SoauthException(sprintf('response type \'%s\' not supported.', self::GT_AUTHORIZATION_CODE));
+            }
+
             $data = $this->getAuthClientIdentifiers($request);
 
             // exports $client_id, $redirect_uri
@@ -74,6 +88,20 @@ class Auth extends AbstractController {
         return $response;
     }
 
+    protected function getUser($username) {
+        if(!($user = $this->userProvider->getUser($username))) {
+            throw new SoauthException(sprintf('No user found with username %s', $username));
+        }
+        return $user;
+    }
+
+    protected function getClient($clientId) {
+        if(!($client = $this->clientProvider->getClient($clientId))) {
+            throw new SoauthException(sprintf('No client found with id %s', $clientId));
+        }
+        return $client;
+    }
+
     /**
      * authenticate user
      * @param $request
@@ -97,6 +125,33 @@ class Auth extends AbstractController {
         return $response;
     }
 
+    protected function grantAuthorizationCode(Request $request) {
+        $data = $request->request->all();
+        try {
+            $data = $this->getAuthCredentials($request);
+            $this->debug('> Authenticate request', ['method' => $request->getMethod(), 'query' => $data]);
+            // exports $client_id, $redirect_uri, $username and $password
+            extract($data);
+
+            $client = $this->getClient($client_id);
+            $user = $this->getUser($username);
+
+            $access = $this->accessProvider->generateAuthorizationCodeAccess($user, $client);
+            $this->credentialStore->save($access);
+            $response = new RedirectResponse($redirect_uri . '?code=' . $access->getAuthCode());
+        }catch (BadDataException $e) {
+            $data['errors'] = $e->getErrors();
+            $this->error('Bad Data Exception: ' . $e->getMessage(), ['errors' => $data['errors'], 'exception' => $e]);
+            $response = $this->getBadFormRequestResponse($data);
+        } catch (SoauthException $e) {
+            $this->error('Soauth Exception: ' . $e->getMessage(), ['exception' => $e]);
+            $response = $this->getBadFormRequestResponse($data);
+        }
+
+        $this->debug('< Response', ['status_code' => $response->getStatusCode(), 'target' => $response instanceOf RedirectResponse ? $response->getTargetUrl() : null]);
+        return $response;
+    }
+
     protected function grantClientCredentials(Request $request) {
         $requestData = $request->request;
         $clientId = $requestData->get('client_id', null);
@@ -114,29 +169,6 @@ class Auth extends AbstractController {
         $this->credentialStore->save($credentials);
 
         return new JsonResponse($credentials->toArray());
-    }
-
-    protected function grantAuthorizationCode(Request $request) {
-        $data = $request->request->all();
-        try {
-            $data = $this->getAuthCredentials($request);
-            $this->debug('> Authenticate request', ['method' => $request->getMethod(), 'query' => $data]);
-            // exports $client_id, $redirect_uri, $username and $password
-            extract($data);
-
-            $accessCredentials = $this->accessProvider->generate($request, $client_id, $redirect_uri, $username, $password);
-            $response = new RedirectResponse($redirect_uri . '?code=' . $accessCredentials->getAuthCode());
-        }catch (BadDataException $e) {
-            $data['errors'] = $e->getErrors();
-            $this->error('Bad Data Exception: ' . $e->getMessage(), ['errors' => $data['errors'], 'exception' => $e]);
-            $response = $this->getBadFormRequestResponse($data);
-        } catch (SoauthException $e) {
-            $this->error('Soauth Exception: ' . $e->getMessage(), ['exception' => $e]);
-            $response = $this->getBadFormRequestResponse($data);
-        }
-
-        $this->debug('< Response', ['status_code' => $response->getStatusCode(), 'target' => $response instanceOf RedirectResponse ? $response->getTargetUrl() : null]);
-        return $response;
     }
 
     protected function getBadRequestResponse($content = 'Error') {

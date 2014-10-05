@@ -12,34 +12,34 @@ interface AccessStorageHandlerInterface {
     /**
      * Retrieve credentials using $authCode
      * @param string $authCode
-     * @return Credentials|null if not found or expired
+     * @return AuthorizationCodeAccess|null if not found or expired
      */
-    public function getAuthCodeCredentials($authCode);
+    public function getAuthorizationCodeAccess($authCode);
 
     /**
      * Save credentials
-     * @param Access $credentials
+     * @param Access $access
      * @param int $createdTime
      */
-    public function save(Access $credentials, $createdTime = null);
+    public function save(Access $access, $createdTime = null);
 
     /**
      * Retrieve credentials using $accessCode
-     * @param string $accessCode
+     * @param string $accessToken
      * @return Access|null if not found or expired
      */
-    public function getAccessTokenCredentials($accessCode);
+    public function getAccess($accessToken);
 
     /**
      * Retrieve credentials using $refreshCode
-     * @param string $refreshCode
+     * @param string $refreshToken
      * @return Access|null if not found or expired
      */
-    public function getRefreshTokenCredentials($refreshCode);
+    public function getRefreshTokenAccess($refreshToken);
 
     /**
      * invalidate given credentials so it cannot be used anymore
-     * @param Credentials $credentials
+     * @param Access $access
      */
-    public function invalidate(Access $credentials);
+    public function invalidate(Access $access);
 }

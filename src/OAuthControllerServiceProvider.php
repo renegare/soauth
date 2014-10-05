@@ -81,7 +81,13 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         $controllers = $app['controllers_factory'];
 
         $app['soauth.controller.auth'] = $app->share(function($app){
-            $controller = new Controller\Auth($app['soauth.renderer'], $app['soauth.access.provider'], $app['soauth.client.provider'], $app['soauth.storage.handler']);
+            $controller = new Controller\Auth(
+                $app['soauth.renderer'],
+                $app['soauth.access.provider'],
+                $app['soauth.client.provider'],
+                $app['soauth.user.provider'],
+                $app['soauth.storage.handler']
+            );
 
             if(isset($app['logger']) && $app['logger']) {
                 $controller->setLogger($app['logger']);
@@ -91,13 +97,16 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.controller.access'] = $app->share(function($app){
-            $controller = new Controller\Access;
+            $controller = new Controller\Access(
+                $app['soauth.access.provider'],
+                $app['soauth.client.provider'],
+                $app['soauth.user.provider'],
+                $app['soauth.storage.handler']
+            );
 
             if(isset($app['logger']) && $app['logger']) {
                 $controller->setLogger($app['logger']);
             }
-
-            $controller->setAccessProvider($app['soauth.access.provider']);
 
             return $controller;
         });

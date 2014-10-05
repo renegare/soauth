@@ -29,6 +29,13 @@ class AuthorizationCodeAccess extends ClientCredentialsAccess {
     }
 
     /**
+     * @return string
+     */
+    public function getAuthCode() {
+        return $this->authCode;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function toArray() {

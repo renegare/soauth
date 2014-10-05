@@ -6,6 +6,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Renegare\Soauth\Access\ClientCredentialsAccess;
 use Renegare\Soauth\Access\AuthorizationCodeAccess;
 use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Renegare\Soauth\Access\Access;
 
 class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface {
     use LoggerTrait;
@@ -31,35 +33,22 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     /**
      * {@inheritdoc}
      */
-    public function generateAuthorizationCodeAccess(Request $request, $clientId, $redirectUri, $username, $password = '') {
-        $ip = $request->getClientIp();
-        $user = $this->getUser($username);
-        $client = $this->getClient($clientId);
+    public function generateAuthorizationCodeAccess(UserInterface $user, ClientInterface $client) {
+        $clientId = $client->getId();
+        $username = $user->getUsername();
 
-        if(!$this->userProvider->isValid($user, $password)) {
-            throw new SoauthException(sprintf('Bad user: %s', $username));
-        }
+        $authCode = $this->getDigest(sprintf('ac:ac:%s:%s', $clientId, $username));
+        $accessToken = $this->getDigest(sprintf('ac:at:%s:%s', $clientId, $username));
+        $refreshToken = $this->getDigest(sprintf('ac:rt:%s:%s', $clientId, $username));
 
-        if(!$this->clientProvider->isValid($client, $redirectUri)) {
-            throw new SoauthException(sprintf('Bad user: %s', $username));
-        }
-
-        $this->debug('found valid user and client', ['user' => $username, 'client' => $clientId]);
-
-        $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
-        $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, time(), $ip));
-        $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
-
-        $credentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime, $clientId, $username);
-        $this->storage->save($credentials);
-
-        return $credentials;
+        return new AuthorizationCodeAccess($username, $clientId, $authCode, $accessToken, $refreshToken);
     }
 
     /**
      * {@inheritdoc}
      */
     public function exchange($authCode, $clientSecret) {
+        throw new \RuntimeException('Not Implemented Properly: ' . __METHOD__);
         $credentials = $this->storage->getAuthCodeCredentials($authCode);
         $client = $this->getClient($credentials->getClientId());
         if($client->getSecret() !== $clientSecret) {
@@ -76,9 +65,9 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     /**
      * {@inheritdoc}
      */
-    public function getSecurityToken($accessCode) {
-        if(!($credentials = $this->storage->getAccessTokenCredentials($accessCode))) {
-            throw new SoauthException(sprintf('No credenitials found with access code %s', $accessCode));
+    public function getSecurityToken($accessToken) {
+        if(!($credentials = $this->storage->getAccess($accessToken))) {
+            throw new SoauthException(sprintf('No credenitials found with access code %s', $accessToken));
         }
 
         if($credentials instanceOf AuthorizationCodeAccess) {
@@ -96,7 +85,8 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     /**
      * {@inheritdoc}
      */
-    public function refresh(Request $request, $refreshCode) {
+    public function refreshToken(Access $access) {
+        throw new \RuntimeException('Not Implemented Properly: ' . __METHOD__);
         $credentials = $this->storage->getRefreshCodeCredentials($refreshCode);
 
         $ip = $request->getClientIp();
@@ -124,9 +114,9 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
      */
     public function generateClientCredentialsAccess(ClientInterface $client) {
         $clientId = $client->getId();
-        $accessCode = $this->getDigest(sprintf('auc:%s', $clientId));
-        $refreshCode = $this->getDigest(sprintf('rc:%s', $clientId));
-        return new ClientCredentialsAccess($clientId, $accessCode, $refreshCode);
+        $accessToken = $this->getDigest(sprintf('cc:at:%s', $clientId));
+        $refreshToken = $this->getDigest(sprintf('cc:rt:%s', $clientId));
+        return new ClientCredentialsAccess($clientId, $accessToken, $refreshToken);
     }
 
     /**

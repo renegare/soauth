@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth\Test\OAuth;
+namespace Renegare\Soauth\Test\OAuth\GrantFlow;
 
 use Renegare\Soauth\Test\FlowTestCase;
 use Silex\Application;

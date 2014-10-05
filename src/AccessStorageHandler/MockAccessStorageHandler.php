@@ -13,14 +13,14 @@ class MockAccessStorageHandler implements AccessStorageHandlerInterface {
     /**
      * {@inheritdoc}
      */
-    public function save(Access $credentials, $createdTime = null) {
-        $this->credentialStore[] = [$credentials, $createdTime? $createdTime : time()];
+    public function save(Access $access, $createdTime = null) {
+        $this->credentialStore[] = [$access, $createdTime? $createdTime : time()];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAuthCodeCredentials($authCode) {
+    public function getAuthorizationCodeAccess($authCode) {
         return $this->findCredentials(function($record) use ($authCode){
             list($credentials, $created) = $record;
 
@@ -31,31 +31,31 @@ class MockAccessStorageHandler implements AccessStorageHandlerInterface {
     /**
      * {@inheritdoc}
      */
-    public function getAccessTokenCredentials($accessCode) {
-        return $this->findCredentials(function($record) use ($accessCode){
+    public function getAccess($accessToken) {
+        return $this->findCredentials(function($record) use ($accessToken){
             list($credentials, $created) = $record;
 
-            return $credentials->getAccessToken() === $accessCode && ($created + $credentials->getExpiresIn()) > time();
+            return $credentials->getAccessToken() === $accessToken && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getRefreshTokenCredentials($refreshCode) {
-        return $this->findCredentials(function($record) use ($refreshCode){
+    public function getRefreshTokenAccess($refreshToken) {
+        return $this->findCredentials(function($record) use ($refreshToken){
             list($credentials, $created) = $record;
 
-            return $credentials->getRefreshToken() === $refreshCode && ($created + $credentials->getExpiresIn()) > time();
+            return $credentials->getRefreshToken() === $refreshToken && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function invalidate(Access $credentials) {
+    public function invalidate(Access $access) {
         foreach($this->credentialStore as $index => $record) {
-            if($record[0]->getAccessCode() === $credentials->getAccessCode()) {
+            if($record[0]->getAccessToken() === $access->getAccessToken()) {
                 array_splice($this->credentialStore, 0, 1);
                 break;
             }
