@@ -31,22 +31,22 @@ class MockAccessStorageHandler implements AccessStorageHandlerInterface {
     /**
      * {@inheritdoc}
      */
-    public function getAccessCodeCredentials($accessCode) {
+    public function getAccessTokenCredentials($accessCode) {
         return $this->findCredentials(function($record) use ($accessCode){
             list($credentials, $created) = $record;
 
-            return $credentials->getAccessCode() === $accessCode && ($created + $credentials->getExpiresIn()) > time();
+            return $credentials->getAccessToken() === $accessCode && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getRefreshCodeCredentials($refreshCode) {
+    public function getRefreshTokenCredentials($refreshCode) {
         return $this->findCredentials(function($record) use ($refreshCode){
             list($credentials, $created) = $record;
 
-            return $credentials->getRefreshCode() === $refreshCode && ($created + $credentials->getExpiresIn()) > time();
+            return $credentials->getRefreshToken() === $refreshCode && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 

@@ -28,14 +28,14 @@ interface AccessStorageHandlerInterface {
      * @param string $accessCode
      * @return Access|null if not found or expired
      */
-    public function getAccessCodeCredentials($accessCode);
+    public function getAccessTokenCredentials($accessCode);
 
     /**
      * Retrieve credentials using $refreshCode
      * @param string $refreshCode
      * @return Access|null if not found or expired
      */
-    public function getRefreshCodeCredentials($refreshCode);
+    public function getRefreshTokenCredentials($refreshCode);
 
     /**
      * invalidate given credentials so it cannot be used anymore

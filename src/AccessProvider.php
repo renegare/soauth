@@ -77,16 +77,23 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
      * {@inheritdoc}
      */
     public function getSecurityToken($accessCode) {
-        if(!($credentials = $this->storage->getAccessCodeCredentials($accessCode))) {
+        if(!($credentials = $this->storage->getAccessTokenCredentials($accessCode))) {
             throw new SoauthException(sprintf('No credenitials found with access code %s', $accessCode));
         }
 
-        $user = $this->getUser($credentials->getUsername());
-        $client = $this->getClient($credentials->getClientId());
+        /*
+        if($credentials instanceOf AuthorizationCodeAccess) {
+            $user = $this->getUser($credentials->getUsername());
+        }
 
-        $token = new SecurityToken($client, $user->getRoles());
+        if($credentials instanceOf ClientCredentialsAccess) {
+            $client = $this->getClient($credentials->getClientId());
+        }
+        */
+
+        $token = new SecurityToken($credentials);
         $token->setAuthenticated(true);
-        $token->setUser($user);
+        // $token->setUser($user);
         return $token;
     }
 

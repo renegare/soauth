@@ -37,10 +37,7 @@ class Listener implements ListenerInterface, LoggerInterface {
 
         try {
             $token = $this->getAccessToken($request);
-            $this->debug('User appears to be logged in already. #Noop', [
-                'client_id' => $token->getClientId(),
-                'username' => $token->getUsername()
-            ]);
+            $this->debug('User appears to be logged in already. #Noop', $token->getCredentials()->toArray());
             $this->securityContext->setToken($token);
         } catch (BadRequestException $e) {
             $this->error($e->getMessage(), ['exception' => $e]);
@@ -50,18 +47,23 @@ class Listener implements ListenerInterface, LoggerInterface {
     }
 
     protected function getAccessToken(Request $request) {
-        if(!$request->headers->has('X-ACCESS-CODE')) {
+        if(!$request->headers->has('Authorization')) {
             $exception = new BadRequestException($request, 'Access code header not present in request', Response::HTTP_UNAUTHORIZED);
             throw $exception;
         }
 
         try {
-            $accessCode = $request->headers->get('X-ACCESS-CODE');
-            return $this->accessProvider->getSecurityToken($accessCode);
+            $accessToken = $this->parseAccessToken($request->headers->get('Authorization'));
+            return $this->accessProvider->getSecurityToken($accessToken);
         } catch (SoauthException $e) {
             $this->error($e->getMessage(), ['exception' => $e]);
             $exception = new BadRequestException($request, 'No valid access code found', Response::HTTP_UNAUTHORIZED, $e);
             throw $exception;
         }
+    }
+
+    protected function parseAccessToken($authorization) {
+        $authorization = explode(' ', $authorization);
+        return trim($authorization[1]);
     }
 }
