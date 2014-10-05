@@ -12,7 +12,9 @@ class ClientCredentialsTest extends FlowTestCase {
     public function testFlow() {
         $app = $this->createApplication(true);
 
-        // $app['soauth.access.provider'] = $mockAccessProvider;
+        $app->get('/client-resource', function() {
+            return 'All Good!';
+        });
 
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
@@ -27,5 +29,11 @@ class ClientCredentialsTest extends FlowTestCase {
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
         $accessDetails = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('access_token', $accessDetails);
+        $accessToken = $accessDetails['access_token'];
+        $client = $this->createClient(['HTTP_X_Authorization' => 'Bearer ' . $accessToken], $app);
+        $client->request('GET', '/client-resource');
+        $response = $client->getResponse();
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
+        $this->assertEquals('All Good!', $response->getContent());
     }
 }

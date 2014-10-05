@@ -60,7 +60,7 @@ class Auth extends AbstractController {
 
             $data['client'] = $client;
 
-            $this->info('> Sign in request', ['method' => $request->getMethod(), 'query' => $data]);
+            $this->debug('> Sign in request', ['method' => $request->getMethod(), 'query' => $data]);
             $response = new Response($this->renderer->renderSignInForm($data));
         } catch (BadDataException $e) {
             $this->error('Bad Data Exception: ' . $e->getMessage(), ['errors' => $e->getErrors(), 'exception' => $e]);
@@ -70,7 +70,7 @@ class Auth extends AbstractController {
             $response = $this->getBadRequestResponse();
         }
 
-        $this->info('< Response', ['status_code' => $response->getStatusCode()]);
+        $this->debug('< Response', ['status_code' => $response->getStatusCode()]);
         return $response;
     }
 
@@ -120,7 +120,7 @@ class Auth extends AbstractController {
         $data = $request->request->all();
         try {
             $data = $this->getAuthCredentials($request);
-            $this->info('> Authenticate request', ['method' => $request->getMethod(), 'query' => $data]);
+            $this->debug('> Authenticate request', ['method' => $request->getMethod(), 'query' => $data]);
             // exports $client_id, $redirect_uri, $username and $password
             extract($data);
 
@@ -135,7 +135,7 @@ class Auth extends AbstractController {
             $response = $this->getBadFormRequestResponse($data);
         }
 
-        $this->info('< Response', ['status_code' => $response->getStatusCode(), 'target' => $response instanceOf RedirectResponse ? $response->getTargetUrl() : null]);
+        $this->debug('< Response', ['status_code' => $response->getStatusCode(), 'target' => $response instanceOf RedirectResponse ? $response->getTargetUrl() : null]);
         return $response;
     }
 

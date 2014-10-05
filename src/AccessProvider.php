@@ -44,7 +44,7 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
             throw new SoauthException(sprintf('Bad user: %s', $username));
         }
 
-        $this->info('found valid user and client', ['user' => $username, 'client' => $clientId]);
+        $this->debug('found valid user and client', ['user' => $username, 'client' => $clientId]);
 
         $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, time(), $ip));
         $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, time(), $ip));
@@ -102,14 +102,14 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
         $user = $this->getUser($username);
         $client = $this->getClient($clientId);
 
-        $this->info('found valid user and client', ['user' => $username, 'client' => $clientId]);
+        $this->debug('found valid user and client', ['user' => $username, 'client' => $clientId]);
 
         $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
         $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
         $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
         $newCredentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime, $clientId, $username);
 
-        $this->info('refreshed credentials', ['old_access_code' => $credentials->getAccessCode(), 'new_access_code' => $newCredentials->getAccessCode()]);
+        $this->debug('refreshed credentials', ['old_access_code' => $credentials->getAccessCode(), 'new_access_code' => $newCredentials->getAccessCode()]);
         $this->storage->save($newCredentials);
         $this->storage->invalidate($credentials);
 

@@ -46,7 +46,7 @@ class ListenerTest extends WebTestCase {
                 return $mockSecurityToken;
             }));
 
-        $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $expectedAccessCode], $this->app);
+        $client = $this->createClient(['HTTP_X_Authorization' => 'Bearer: ' . $expectedAccessCode], $this->app);
         $client->request('GET', '/api');
         $response = $client->getResponse();
         $content = $response->getContent();

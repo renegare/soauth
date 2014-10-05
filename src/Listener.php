@@ -33,11 +33,11 @@ class Listener implements ListenerInterface, LoggerInterface {
     public function handle(GetResponseEvent $event) {
         $request = $event->getRequest();
 
-        $this->info('> Security listener request', ['headers' => $request->headers->all()]);
+        $this->debug('> Security listener request', ['headers' => $request->headers->all()]);
 
         try {
             $token = $this->getAccessToken($request);
-            $this->info('User appears to be logged in already. #Noop', [
+            $this->debug('User appears to be logged in already. #Noop', [
                 'client_id' => $token->getClientId(),
                 'username' => $token->getUsername()
             ]);
