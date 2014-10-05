@@ -3,19 +3,10 @@
 namespace Renegare\Soauth;
 
 use Symfony\Component\HttpFoundation\Request;
+use Renegare\Soauth\Access\ClientCredentialsAccess;
+use Renegare\Soauth\Access\AuthorizationCodeAccess;
 
 interface AccessProviderInterface {
-
-    /**
-     * generate and store access credentials
-     * @param Request $request
-     * @param string $clientId
-     * @param string $redirectUri
-     * @param string $username
-     * @param string $password [optional]
-     * @return CredentialsInterface
-     */
-    public function generate(Request $request, $clientId, $redirecUri, $username, $password = '');
 
     /**
      * get access credentials for the given auth code
@@ -32,4 +23,23 @@ interface AccessProviderInterface {
      * @return CredentialsInterface
      */
     public function refresh(Request $request, $refreshCode);
+
+    /**
+     * generate and store access credentials
+     * @todo needs to change!!!
+     * @param Request $request
+     * @param string $clientId
+     * @param string $redirectUri
+     * @param string $username
+     * @param string $password [optional]
+     * @return AuthorizationCodeAccess
+     */
+    public function generateAuthorizationCodeAccess(Request $request, $clientId, $redirecUri, $username, $password = '');
+
+    /**
+     * generate client access credentials
+     * @param ClientInterface $client
+     * @return ClientCredentialsAccess
+     */
+    public function generateClientCredentialsAccess(ClientInterface $client);
 }

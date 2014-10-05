@@ -40,7 +40,7 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.access.provider'] = $app->share(function(Application $app){
-            $accessProvider = new AccessProvider($app['soauth.test']? $app['soauth.storage.handler.mock'] : $app['soauth.storage.handler'],
+            $accessProvider = new AccessProvider($app['soauth.storage.handler'],
                 $app['soauth.client.provider'],
                 $app['soauth.user.provider']);
 
@@ -52,7 +52,15 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         });
 
         $app['soauth.storage.handler.mock'] = $app->share(function(Application $app){
-            return new MockStorageHandler();
+            return new AccessStorageHandler\MockAccessStorageHandler();
+        });
+
+        $app['soauth.storage.handler'] = $app->share(function(Application $app) {
+            if($app['soauth.test']) {
+                return $app['soauth.storage.handler.mock'];
+            }
+
+            throw \RuntimeException("No 'soauth.storage.handler' service configured!");
         });
 
         $app['soauth.client.provider'] = $app->share(function(Application $app){
@@ -73,7 +81,7 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
         $controllers = $app['controllers_factory'];
 
         $app['soauth.controller.auth'] = $app->share(function($app){
-            $controller = new Controller\Auth($app['soauth.renderer'], $app['soauth.access.provider'], $app['soauth.client.provider']);
+            $controller = new Controller\Auth($app['soauth.renderer'], $app['soauth.access.provider'], $app['soauth.client.provider'], $app['soauth.storage.handler']);
 
             if(isset($app['logger']) && $app['logger']) {
                 $controller->setLogger($app['logger']);

@@ -3,6 +3,9 @@
 namespace Renegare\Soauth;
 
 use Symfony\Component\HttpFoundation\Request;
+use Renegare\Soauth\Access\ClientCredentialsAccess;
+use Renegare\Soauth\Access\AuthorizationCodeAccess;
+use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
 
 class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface {
     use LoggerTrait;
@@ -19,7 +22,7 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
      * @param ClientProvider $client
      * @param UserProvider $user
      */
-    public function __construct(StorageHandlerInterface $storage, ClientProviderInterface $client, UserProviderInterface $user) {
+    public function __construct(AccessStorageHandlerInterface $storage, ClientProviderInterface $client, UserProviderInterface $user) {
         $this->storage = $storage;
         $this->clientProvider = $client;
         $this->userProvider = $user;
@@ -28,7 +31,7 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     /**
      * {@inheritdoc}
      */
-    public function generate(Request $request, $clientId, $redirectUri, $username, $password = '') {
+    public function generateAuthorizationCodeAccess(Request $request, $clientId, $redirectUri, $username, $password = '') {
         $ip = $request->getClientIp();
         $user = $this->getUser($username);
         $client = $this->getClient($clientId);
@@ -113,8 +116,22 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
         return $newCredentials;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function generateClientCredentialsAccess(ClientInterface $client) {
+        $clientId = $client->getId();
+        $accessCode = $this->getDigest(sprintf('auc:%s', $clientId));
+        $refreshCode = $this->getDigest(sprintf('rc:%s', $clientId));
+        return new ClientCredentialsAccess($clientId, $accessCode, $refreshCode);
+    }
+
+    /**
+     * @todo need to make sure value is as unique as possible
+     */
     protected function getDigest($data) {
-        return base64_encode(hash_hmac("sha1", $data . rand(0,1000), $this->secret));
+        $rand = openssl_random_pseudo_bytes(16, $strong);
+        return base64_encode(hash_hmac("sha1", $data . bin2hex($rand), $this->secret));
     }
 
     protected function getUser($username) {

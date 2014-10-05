@@ -1,15 +1,19 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\AccessStorageHandler;
 
-class MockStorageHandler implements StorageHandlerInterface {
+use Renegare\Soauth\Access\Access;
+use Renegare\Soauth\Access\AuthorizationCodeAccess;
+use Renegare\Soauth\Access\ClientCredentialsAccess;
+
+class MockAccessStorageHandler implements AccessStorageHandlerInterface {
 
     protected $credentialStore = [];
 
     /**
      * {@inheritdoc}
      */
-    public function save(CredentialsInterface $credentials, $createdTime = null) {
+    public function save(Access $credentials, $createdTime = null) {
         $this->credentialStore[] = [$credentials, $createdTime? $createdTime : time()];
     }
 
@@ -20,7 +24,7 @@ class MockStorageHandler implements StorageHandlerInterface {
         return $this->findCredentials(function($record) use ($authCode){
             list($credentials, $created) = $record;
 
-            return $credentials->getAuthCode() === $authCode && ($created + $credentials->getLifeTime()) > time();
+            return $credentials instanceOf AuthorizationCodeAccess && $credentials->getAuthCode() === $authCode && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 
@@ -31,7 +35,7 @@ class MockStorageHandler implements StorageHandlerInterface {
         return $this->findCredentials(function($record) use ($accessCode){
             list($credentials, $created) = $record;
 
-            return $credentials->getAccessCode() === $accessCode && ($created + $credentials->getLifeTime()) > time();
+            return $credentials->getAccessCode() === $accessCode && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 
@@ -42,14 +46,14 @@ class MockStorageHandler implements StorageHandlerInterface {
         return $this->findCredentials(function($record) use ($refreshCode){
             list($credentials, $created) = $record;
 
-            return $credentials->getRefreshCode() === $refreshCode && ($created + $credentials->getLifeTime()) > time();
+            return $credentials->getRefreshCode() === $refreshCode && ($created + $credentials->getExpiresIn()) > time();
         });
     }
 
     /**
      * {@inheritdoc}
      */
-    public function invalidate(CredentialsInterface $credentials) {
+    public function invalidate(Access $credentials) {
         foreach($this->credentialStore as $index => $record) {
             if($record[0]->getAccessCode() === $credentials->getAccessCode()) {
                 array_splice($this->credentialStore, 0, 1);
