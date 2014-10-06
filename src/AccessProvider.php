@@ -87,28 +87,15 @@ class AccessProvider implements SecurityAccessProviderInterface, LoggerInterface
     /**
      * {@inheritdoc}
      */
-    public function refreshToken(Access $access) {
-        throw new \RuntimeException('Not Implemented Properly: ' . __METHOD__);
-        $credentials = $this->storage->getRefreshCodeCredentials($refreshCode);
+    public function refreshAccess(Access $access, ClientInterface $client, UserInterface $user = null) {
+        if($access instanceOf AuthorizationCodeAccess) {
+            $refreshedAccess = $this->generateAuthorizationCodeAccess($user, $client);
+        } else if($access instanceOf ClientCredentialsAccess ) {
+            throw new \RuntimeException('Hmmm ... needs to be implemented!');
+        }
 
-        $ip = $request->getClientIp();
-        $username = $credentials->getUsername();
-        $clientId = $credentials->getClientId();
-        $user = $this->getUser($username);
-        $client = $this->getClient($clientId);
-
-        $this->debug('found valid user and client', ['user' => $username, 'client' => $clientId]);
-
-        $accessCode = $this->getDigest(sprintf('auc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
-        $authCode = $this->getDigest(sprintf('ac:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
-        $refreshCode = $this->getDigest(sprintf('rc:%s:%s:%s:%s', $clientId, $username, $refreshCode, $ip));
-        $newCredentials = new Credentials($accessCode, $authCode, $refreshCode, $this->defaultLifetime, $clientId, $username);
-
-        $this->debug('refreshed credentials', ['old_access_code' => $credentials->getAccessCode(), 'new_access_code' => $newCredentials->getAccessCode()]);
-        $this->storage->save($newCredentials);
-        $this->storage->invalidate($credentials);
-
-        return $newCredentials;
+        $refreshedAccess->setPreviousAccess($access);
+        return $refreshedAccess;
     }
 
     /**

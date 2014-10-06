@@ -7,6 +7,7 @@ class Access {
     protected $accessToken;
     protected $refreshToken;
     protected $expiresIn;
+    protected $previousAccess;
 
     /**
      * @param string $accessToken
@@ -49,5 +50,13 @@ class Access {
             'refresh_token' => $this->refreshToken,
             'expires_in' => $this->expiresIn
         ];
+    }
+
+    public function setPreviousAccess(Access $access) {
+        $this->previousAccess = $access;
+    }
+
+    public function getPreviousAccess() {
+        return $this->previousAccess;
     }
 }

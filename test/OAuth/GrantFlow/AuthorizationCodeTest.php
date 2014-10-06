@@ -9,33 +9,21 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthorizationCodeTest extends FlowTestCase {
 
-    public function provideTestFlowDatasets() {
-        return [
-            [true, 1, 'http://client.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
-            [false, 1, 'http://client.com/cb', 'incorrect@example.com', 'Password123', 'cl13nt53crt'],
-            [false, 1, 'http://client.com/cb', 'test@example.com', 'IncorrectPassword123', 'cl13nt53crt'],
-            [false, 2, 'http://client.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
-            [false, 3, 'http://client.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
-            [false, 1, 'http://not.same.domain.com/cb', 'test@example.com', 'Password123', 'cl13nt53crt'],
-            [false, 1, 'http://client.com/cb', 'test@example.com', 'Password123', 'Inc0rr3ct!cl13nt53crt'],
-            [false, 1, 'http://client.com/cb', 'test@example.com', 'Password123']
-        ];
-    }
-    /**
-     * @dataProvider provideTestFlowDatasets
-     */
-    public function testFlow($expectToSucceed, $clientId, $redirectUri, $username, $password, $clientSecret = null) {
-        $app = $this->createApplication(true);
+    public function testFlow() {
+        $clientId = 1;
+        $redirectUri = 'http://client.com/cb';
+        $username = 'test@example.com';
+        $password = 'Password123';
+        $clientSecret = 'cl13nt53crt';
 
-        $verifyAccessTokenCb = null;
-        $app->get('/verify-access-token', function(Application $app) use (&$verifyAccessTokenCb){
-            $verifyAccessTokenCb($app);
+        $app = $this->getApplication();
 
+        $app->get('/verify-access-token', function(Application $app) {
             return 'Access Granted';
         });
 
         // ensure initial resource access is rejected
-        $client = $this->createClient([], $app);
+        $client = $this->createClient([]);
         $client->request('GET', '/verify-access-token');
         $response = $client->getResponse();
         $content = $response->getContent();
@@ -44,18 +32,13 @@ class AuthorizationCodeTest extends FlowTestCase {
         // user flow
         $client = $this->createClient([], $app);
         $client->followRedirects(false);
-        $crawler = $client->request('GET', '/auth/', [
+        $crawler = $client->request('GET', '/oauth/auth', [
             'response_type' => 'code',
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri
         ]);
         $response = $client->getResponse();
-
-        if($response->getStatusCode() !== Response::HTTP_OK) {
-            $this->assertFalse($expectToSucceed);
-            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
-            return;
-        }
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
         $formButton = $crawler->selectButton('Sign-in');
         $this->assertCount(1, $formButton, $response->getContent());
@@ -65,12 +48,7 @@ class AuthorizationCodeTest extends FlowTestCase {
         ]);
         $client->submit($form);
         $response = $client->getResponse();
-
-        if($response->getStatusCode() !== Response::HTTP_FOUND) {
-            $this->assertFalse($expectToSucceed);
-            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
-            return;
-        }
+        $this->assertEquals(Response::HTTP_FOUND, $response->getStatusCode());
 
         $redirectTargetUrl = $response->getTargetUrl();
         $this->assertContains('http://client.com/cb' . '?code', $redirectTargetUrl);
@@ -80,37 +58,19 @@ class AuthorizationCodeTest extends FlowTestCase {
 
         $client = $this->createClient([], $app);
 
-        $client->request('POST', '/auth/access/', [
+        $client->request('POST', '/oauth/token', [
             'grant_type' => 'authorization_code',
             'code' => $code,
             'client_id' => $clientId,
-            'redirect_uri' => $redirectUri,
             'client_secret' => $clientSecret
         ]);
 
         $response = $client->getResponse();
-
-        if($response->getStatusCode() !== Response::HTTP_OK) {
-            $this->assertFalse($expectToSucceed);
-            $this->assertEquals(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
-            return;
-        }
+        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
 
         // set test to verify security access token and X-ACCESS-CODE header on client
         $credentials = json_decode($response->getContent(), true);
         $accessCode = $credentials['access_token'];
-
-        $verifyAccessTokenCb = function(Application $app) use ($accessCode, $username, $clientId){
-            $token = $app['security']->getToken();
-            $this->assertTrue($token->isAuthenticated());
-            $this->assertEquals($username, $token->getUsername());
-            $access = $token->getAccess();
-            $this->assertInstanceOf('Renegare\Soauth\Access\AuthorizationCodeAccess', $access);
-            $this->assertEquals($clientId, $access->getClientId());
-            $roles = $token->getRoles();
-            $this->assertCount(1, $roles);
-            $this->assertEquals('ROLE_USER', $roles[0]->getRole());
-        };
 
         $client = $this->createClient(['HTTP_Authorization' => 'Bearer ' . $accessCode], $app);
         $client->request('GET', '/verify-access-token');
@@ -118,6 +78,15 @@ class AuthorizationCodeTest extends FlowTestCase {
         $content = $response->getContent();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
         $this->assertEquals('Access Granted', $content);
-        $this->assertTrue($expectToSucceed);
+
+        $token = $app['security']->getToken();
+        $this->assertTrue($token->isAuthenticated());
+        $this->assertEquals($username, $token->getUsername());
+        $access = $token->getAccess();
+        $this->assertInstanceOf('Renegare\Soauth\Access\AuthorizationCodeAccess', $access);
+        $this->assertEquals($clientId, $access->getClientId());
+        $roles = $token->getRoles();
+        $this->assertCount(1, $roles);
+        $this->assertEquals('ROLE_USER', $roles[0]->getRole());
     }
 }

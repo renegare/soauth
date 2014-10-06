@@ -18,7 +18,7 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
 
             $app['security.authentication_listener.'.$name.'.soauth'] = $app->share(function () use ($app, $name) {
 
-                $listener = new Listener($name, $app['security'], $app['soauth.access.provider']);
+                $listener = new Listener($name, $app['security'], $app['soauth.access.provider'], $app['soauth.auth.provider']);
 
                 if(isset($app['logger']) && $app['logger']) {
                     $listener->setLogger($app['logger']);
@@ -71,6 +71,10 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
             return new UserProvider($app['soauth.user.provider.config']);
         });
 
+        $app['soauth.auth.provider'] = $app->share(function(Application $app) {
+            return new AuthorizationProvider\BearerAuthorizationProvider();
+        });
+
         $app['soauth.user.provider.config'] = [];
         $app['soauth.client.provider.config'] = [];
     }
@@ -80,14 +84,28 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
     function connect(Application $app) {
         $controllers = $app['controllers_factory'];
 
+        $app['soauth.controller.token'] = $app->share(function($app){
+            $controller = new Controller\TokenController($app['soauth.access.provider'], $app['soauth.storage.handler'], $app['soauth.auth.provider']);
+
+            $controller->setUserProvider($app['soauth.user.provider']);
+            $controller->setClientProvider($app['soauth.client.provider']);
+
+            if(isset($app['logger']) && $app['logger']) {
+                $controller->setLogger($app['logger']);
+            }
+
+            return $controller;
+        });
+
         $app['soauth.controller.auth'] = $app->share(function($app){
-            $controller = new Controller\Auth(
+            $controller = new Controller\AuthController(
                 $app['soauth.renderer'],
                 $app['soauth.access.provider'],
-                $app['soauth.client.provider'],
-                $app['soauth.user.provider'],
                 $app['soauth.storage.handler']
             );
+
+            $controller->setUserProvider($app['soauth.user.provider']);
+            $controller->setClientProvider($app['soauth.client.provider']);
 
             if(isset($app['logger']) && $app['logger']) {
                 $controller->setLogger($app['logger']);
@@ -96,26 +114,13 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
             return $controller;
         });
 
-        $app['soauth.controller.access'] = $app->share(function($app){
-            $controller = new Controller\Access(
-                $app['soauth.access.provider'],
-                $app['soauth.client.provider'],
-                $app['soauth.user.provider'],
-                $app['soauth.storage.handler']
-            );
+        // main entry point for tokens
+        $controllers->post('/token', 'soauth.controller.token:grantAction');
 
-            if(isset($app['logger']) && $app['logger']) {
-                $controller->setLogger($app['logger']);
-            }
+        // authorization flow
+        $controllers->get('/auth', 'soauth.controller.auth:signinAction');
+        $controllers->post('/auth', 'soauth.controller.auth:authenticateAction');
 
-            return $controller;
-        });
-
-        $controllers->get('/', 'soauth.controller.auth:signinAction');
-        $controllers->post('/', 'soauth.controller.auth:authenticateAction');
-
-        $controllers->post('/access/', 'soauth.controller.access:exchangeAction');
-        $controllers->put('/access/', 'soauth.controller.access:refreshAction');
 
         return $controllers;
     }

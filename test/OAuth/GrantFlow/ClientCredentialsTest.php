@@ -35,7 +35,7 @@ class ClientCredentialsTest extends FlowTestCase {
         $response = $this->requestProtectedResource($client);
         $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
 
-        $client->request('POST', '/auth/', [
+        $client->request('POST', '/oauth/token', [
             'grant_type' => 'client_credentials',
             'client_id' => 1,
             'client_secret' => 'cl13nt53crt'

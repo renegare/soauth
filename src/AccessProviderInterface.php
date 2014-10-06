@@ -30,7 +30,7 @@ interface AccessProviderInterface {
      * @param $refreshCode string
      * @return CredentialsInterface
      */
-    public function refreshToken(Access $access);
+    public function refreshAccess(Access $access, ClientInterface $client, UserInterface $user = null);
 
     /**
      * get access credentials for the given auth code

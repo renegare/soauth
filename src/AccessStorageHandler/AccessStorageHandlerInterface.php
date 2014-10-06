@@ -31,13 +31,6 @@ interface AccessStorageHandlerInterface {
     public function getAccess($accessToken);
 
     /**
-     * Retrieve credentials using $refreshCode
-     * @param string $refreshToken
-     * @return Access|null if not found or expired
-     */
-    public function getRefreshTokenAccess($refreshToken);
-
-    /**
      * invalidate given credentials so it cannot be used anymore
      * @param Access $access
      */

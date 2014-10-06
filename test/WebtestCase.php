@@ -15,19 +15,17 @@ class WebTestCase extends \Silex\WebTestCase {
     public function createClient(array $server = [], Application $app=null)
     {
         if(!$app) {
-            $app = $this->createApplication();
+            $app = $this->getApplication();
         }
 
         return new Client($app, $server);
     }
 
-    public function createApplication($disableExceptionHandler = false)
+    public function createApplication($disableExceptionHandler = true)
     {
         $app = new Application();
 
-        if($disableExceptionHandler) {
-            $app['exception_handler']->disable();
-        }
+        $app['exception_handler']->disable();
 
         $this->configureApplication($app);
 
@@ -43,7 +41,7 @@ class WebTestCase extends \Silex\WebTestCase {
 
         $provider = new OAuthControllerServiceProvider;
         $app->register($provider);
-        $app->mount('/auth', $provider);
+        $app->mount('/oauth', $provider);
 
         $app['security.firewalls'] = [
             'healthcheck' => [
@@ -52,8 +50,8 @@ class WebTestCase extends \Silex\WebTestCase {
                 'stateless' => true
             ],
 
-            'auth' => [
-                'pattern' => '^/auth',
+            'oauth' => [
+                'pattern' => '^/oauth',
                 'anonymous' => true,
                 'stateless' => true
             ],
@@ -82,5 +80,9 @@ class WebTestCase extends \Silex\WebTestCase {
         }
 
         return $this->mockLogger;
+    }
+
+    public function getApplication() {
+        return $this->app;
     }
 }

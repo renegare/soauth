@@ -9,41 +9,22 @@ use Symfony\Component\HttpFoundation\Response;
 class RefreshFlowTest extends FlowTestCase {
 
     protected $app;
-    protected $credentials;
-    protected $clientSecret;
+    protected $access;
+    protected $client;
     protected $verifyAccessTokenCb;
 
     public function setUp() {
-        $app = $this->createApplication(true);
+        parent::setUp();
 
-        // authenticate
-        $client = $this->createClient([], $app);
-        $client->followRedirects(false);
-        $crawler = $client->request('GET', '/auth/', [
-            'client_id' => 1,
-            'redirect_uri' => 'http://client.com/cb'
-        ]);
+        $app = $this->getApplication();
 
-        $form = $crawler->selectButton('Sign-in')->form([
-            'username' => 'test@example.com',
-            'password' => 'Password123'
-        ]);
-        $client->submit($form);
-        $response = $client->getResponse();
-        $redirectTargetUrl = $response->getTargetUrl();
+        $client = $app['soauth.client.provider']->getClient(1);
+        $user = $app['soauth.user.provider']->getUser('test@example.com');
+        $access = $app['soauth.access.provider']->generateAuthorizationCodeAccess($user, $client);
+        $app['soauth.storage.handler']->save($access);
 
-        // exchange for access code
-        $this->clientSecret = 'cl13nt53crt';
-        $code = explode('?code=', $redirectTargetUrl)[1];
-        $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $this->clientSecret], $app);
-        $client->request('POST', '/auth/access/', [], [], [], json_encode(['code' => $code]));
-        $response = $client->getResponse();
-
-        $this->credentials = json_decode($response->getContent(), true);
-        $this->app = $app;
-
-        $verifyAccessTokenCb = null;
-        $this->verifyAccessTokenCb &= $verifyAccessTokenCb;
+        $this->access = $access;
+        $this->client = $client;
 
         $app->get('/verify-access-token', function(Application $app) use (&$verifyAccessTokenCb){
             if($verifyAccessTokenCb) {
@@ -55,34 +36,36 @@ class RefreshFlowTest extends FlowTestCase {
 
     public function testFlow() {
         // ensure we have access
-        $accessCode = $this->credentials['access_code'];
-
-        $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
-        $client->request('GET', '/verify-access-token');
-        $response = $client->getResponse();
-        $content = $response->getContent();
-        $this->assertEquals(Response::HTTP_OK, $response->getStatusCode(), $content);
-        $this->assertEquals('Access Granted', $content);
+        $accessToken = $this->access->getAccessToken();
 
         // refresh access
-        $code = $this->credentials['refresh_code'];
-        $client = $this->createClient(['HTTP_X_CLIENT_SECRET' => $this->clientSecret], $this->app);
-        $client->request('PUT', '/auth/access/', ['refresh_code' => $code]);
+        $refreshToken = $this->access->getRefreshToken();
+        $client = $this->createClient(['HTTP_Authorization' => 'Bearer ' . $accessToken]);
+        $client->request('POST', '/oauth/token', [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refreshToken,
+            'client_id' => $this->client->getId(),
+            'client_secret' => $this->client->getSecret()
+        ]);
+
         $response = $client->getResponse();
         $this->assertEquals(Response::HTTP_OK, $response->getStatusCode());
-        $newCredentials = json_decode($response->getContent(), true);
+        $newAccess = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('access_token', $newAccess);
+        $this->assertArrayHasKey('refresh_token', $newAccess);
+        $this->assertArrayHasKey('expires_in', $newAccess);
+        $this->assertNotEquals($accessToken, $newAccess['access_token']);
 
         // ensure previous access code is unauthorized
-        $accessCode = $this->credentials['access_code'];
-        $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
+        $client = $this->createClient(['HTTP_Authorization' => 'Bearer ' . $accessToken]);
         $client->request('GET', '/verify-access-token');
         $response = $client->getResponse();
         $content = $response->getContent();
         $this->assertEquals(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
 
         // ensure new access code is recognised
-        $accessCode = $newCredentials['access_code'];
-        $client = $this->createClient(['HTTP_X_ACCESS_CODE' => $accessCode], $this->app);
+        $accessToken = $newAccess['access_token'];
+        $client = $this->createClient(['HTTP_Authorization' => 'Bearer ' . $accessToken]);
         $client->request('GET', '/verify-access-token');
         $response = $client->getResponse();
         $content = $response->getContent();

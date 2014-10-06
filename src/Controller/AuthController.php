@@ -7,46 +7,38 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Symfony\Component\Security\Core\SecurityContextInterface;
+
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
+use Renegare\Soauth\ResponseType;
+use Renegare\Soauth\GrantType;
 use Renegare\Soauth\RendererInterface;
 use Renegare\Soauth\AccessProviderInterface;
 use Renegare\Soauth\ClientProviderInterface;
 use Renegare\Soauth\UserProviderInterface;
 use Renegare\Soauth\BadDataException;
-use Renegare\Soauth\AbstractController;
 use Renegare\Soauth\SoauthException;
 use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
+use Renegare\Soauth\Access\AuthorizationCodeAccess;
 
-class Auth extends AbstractController {
-
-    // supported grant types
-    const GT_AUTHORIZATION_CODE = 'authorization_code';
-    const GT_CLIENT_CREDENTIALS = 'client_credentials';
-
-    // supported request types
-    const RT_CODE = 'code';
+class AuthController extends AbstractController {
 
     protected $renderer;
     protected $accessProvider;
-    protected $clientProvider;
     protected $credentialStore;
-    protected $userProvider;
+    protected $securityContext;
 
     /**
      * @param RendererInterface $renderer
      * @param AccessProviderInterface $accessProvider
-     * @param ClientProviderInterface $clientProvider
-     * @param UserProviderInterface $userProvider
      * @param StorageHandlerInterface $store
      */
-    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, ClientProviderInterface $clientProvider, UserProviderInterface $userProvider, AccessStorageHandlerInterface $store) {
+    public function __construct(RendererInterface $renderer, AccessProviderInterface $accessProvider, AccessStorageHandlerInterface $store) {
         $this->renderer = $renderer;
         $this->accessProvider = $accessProvider;
-        $this->clientProvider = $clientProvider;
-        $this->userProvider = $userProvider;
         $this->credentialStore = $store;
     }
 
@@ -59,8 +51,8 @@ class Auth extends AbstractController {
         try {
             $responseType = $request->query->get('response_type');
 
-            if($responseType !== self::RT_CODE) {
-                throw new SoauthException(sprintf('response type \'%s\' not supported.', self::GT_AUTHORIZATION_CODE));
+            if(!ResponseType::isSupported($responseType)) {
+                throw new SoauthException(sprintf('response type \'%s\' not supported.', $responseType));
             }
 
             $data = $this->getAuthClientIdentifiers($request);
@@ -72,6 +64,7 @@ class Auth extends AbstractController {
                 throw new SoauthException(sprintf('No client found with id %s', $client_id));
             }
 
+            $data['response_type'] = $responseType;
             $data['client'] = $client;
 
             $this->debug('> Sign in request', ['method' => $request->getMethod(), 'query' => $data]);
@@ -84,22 +77,7 @@ class Auth extends AbstractController {
             $response = $this->getBadRequestResponse();
         }
 
-        $this->debug('< Response', ['status_code' => $response->getStatusCode()]);
         return $response;
-    }
-
-    protected function getUser($username) {
-        if(!($user = $this->userProvider->getUser($username))) {
-            throw new SoauthException(sprintf('No user found with username %s', $username));
-        }
-        return $user;
-    }
-
-    protected function getClient($clientId) {
-        if(!($client = $this->clientProvider->getClient($clientId))) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
-        return $client;
     }
 
     /**
@@ -108,24 +86,6 @@ class Auth extends AbstractController {
      * @return string|Response
      */
     public function authenticateAction(Request $request) {
-        $grantType = $request->request->get('grant_type', 'authorization_code');
-
-        switch($grantType) {
-            case self::GT_CLIENT_CREDENTIALS:
-                $response = $this->grantClientCredentials($request);
-                break;
-            case self::GT_AUTHORIZATION_CODE:
-                $response = $this->grantAuthorizationCode($request);
-                break;
-            default:
-                $response = $this->getBadRequestResponse('Invalid Grant Type Request');
-                break;
-        }
-
-        return $response;
-    }
-
-    protected function grantAuthorizationCode(Request $request) {
         $data = $request->request->all();
         try {
             $data = $this->getAuthCredentials($request);
@@ -150,25 +110,6 @@ class Auth extends AbstractController {
 
         $this->debug('< Response', ['status_code' => $response->getStatusCode(), 'target' => $response instanceOf RedirectResponse ? $response->getTargetUrl() : null]);
         return $response;
-    }
-
-    protected function grantClientCredentials(Request $request) {
-        $requestData = $request->request;
-        $clientId = $requestData->get('client_id', null);
-        $clientSecret = $requestData->get('client_secret', null);
-
-        if(!($client = $this->clientProvider->getClient($clientId))) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
-
-        if(!($client->getSecret() === $clientSecret && $client->isActive())) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
-
-        $credentials = $this->accessProvider->generateClientCredentialsAccess($client);
-        $this->credentialStore->save($credentials);
-
-        return new JsonResponse($credentials->toArray());
     }
 
     protected function getBadRequestResponse($content = 'Error') {

@@ -42,17 +42,6 @@ class MockAccessStorageHandler implements AccessStorageHandlerInterface {
     /**
      * {@inheritdoc}
      */
-    public function getRefreshTokenAccess($refreshToken) {
-        return $this->findCredentials(function($record) use ($refreshToken){
-            list($credentials, $created) = $record;
-
-            return $credentials->getRefreshToken() === $refreshToken && ($created + $credentials->getExpiresIn()) > time();
-        });
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function invalidate(Access $access) {
         foreach($this->credentialStore as $index => $record) {
             if($record[0]->getAccessToken() === $access->getAccessToken()) {

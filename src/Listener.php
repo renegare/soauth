@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Renegare\Soauth\AuthorizationProvider\AuthorizationProviderInterface;
 
 class Listener implements ListenerInterface, LoggerInterface {
     use LoggerTrait;
@@ -21,10 +22,11 @@ class Listener implements ListenerInterface, LoggerInterface {
      * @param SecurityContextInterface $securityContext
      * @param SecurityAccessProviderInterface $accessProvider
      */
-    public function __construct($firewallName, SecurityContextInterface $securityContext, SecurityAccessProviderInterface $accessProvider) {
+    public function __construct($firewallName, SecurityContextInterface $securityContext, SecurityAccessProviderInterface $accessProvider, AuthorizationProviderInterface $authProvider) {
         $this->firewallName = $firewallName;
         $this->securityContext = $securityContext;
         $this->accessProvider = $accessProvider;
+        $this->authProvider = $authProvider;
     }
 
     /**
@@ -47,17 +49,12 @@ class Listener implements ListenerInterface, LoggerInterface {
     }
 
     protected function getAccessToken(Request $request) {
-        if(!$request->headers->has('Authorization')) {
-            $exception = new BadRequestException($request, 'Access code header not present in request', Response::HTTP_UNAUTHORIZED);
-            throw $exception;
-        }
-
         try {
-            $accessToken = $this->parseAccessToken($request->headers->get('Authorization'));
+            $accessToken = $this->authProvider->getAuth($request);
             return $this->accessProvider->getSecurityToken($accessToken);
         } catch (SoauthException $e) {
             $this->error($e->getMessage(), ['exception' => $e]);
-            $exception = new BadRequestException($request, 'No valid access code found', Response::HTTP_UNAUTHORIZED, $e);
+            $exception = new BadRequestException($request, 'No valid authorization found', Response::HTTP_UNAUTHORIZED, $e);
             throw $exception;
         }
     }
