@@ -4,6 +4,7 @@ namespace Renegare\Soauth\Controller;
 
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints\Collection;
+use Renegare\Soauth\SoauthException;
 use Renegare\Soauth\BadDataException;
 use Renegare\Soauth\LoggerInterface;
 use Renegare\Soauth\LoggerTrait;
@@ -58,6 +59,15 @@ abstract class AbstractController implements LoggerInterface {
         if(!($client = $this->clientProvider->getClient($clientId))) {
             throw new SoauthException(sprintf('No client found with id %s', $clientId));
         }
+        return $client;
+    }
+
+    protected function getValidClient($clientId, $clientSecret) {
+        $client = $this->getClient($clientId);
+        if(!$client || $clientSecret !== $client->getSecret() || !$client->isActive()) {
+            throw new SoauthException('Invalid client, client id: ' . $clientId);
+        }
+
         return $client;
     }
 }

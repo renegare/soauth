@@ -57,11 +57,11 @@ class TokenController extends AbstractController {
         $authCode = $data->get('code');
         $clientId = $data->get('client_id');
         $clientSecret = $data->get('client_secret');
-        $client = $this->getClient($clientId);
-        $access = $this->accessStore->getAuthorizationCodeAccess($authCode);
+        $client = $this->getValidClient($clientId, $clientSecret);
 
-        if(!$client || $clientSecret !== $client->getSecret() || $access->getClientId() !== $client->getId()) {
-            throw new SoauthException('Invalid client trying to request an auth_code exchange, client id: ' . $access->getClientId());
+        $access = $this->accessStore->getAuthorizationCodeAccess($authCode);
+        if(!$access || $access->getClientId() !== $client->getId()) {
+            throw new SoauthException('Invalid authorization code');
         }
 
         $response = new JsonResponse([
@@ -78,10 +78,7 @@ class TokenController extends AbstractController {
         $refreshToken = $data->get('refresh_token');
         $clientId = $data->get('client_id');
         $clientSecret = $data->get('client_secret');
-
-        if(!($client = $this->getClient($clientId)) || $client->getSecret() !== $clientSecret) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
+        $client = $this->getValidClient($clientId, $clientSecret);
 
         $accessToken = $this->authProvider->getAuth($request);
         $currentAccess = $this->accessStore->getAccess($accessToken);
@@ -114,14 +111,7 @@ class TokenController extends AbstractController {
         $data = $request->request;
         $clientId = $data->get('client_id');
         $clientSecret = $data->get('client_secret');
-
-        if(!($client = $this->clientProvider->getClient($clientId))) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
-
-        if(!($client->getSecret() === $clientSecret && $client->isActive())) {
-            throw new SoauthException(sprintf('No client found with id %s', $clientId));
-        }
+        $client = $this->getValidClient($clientId, $clientSecret);
 
         $access = $this->accessProvider->generateClientCredentialsAccess($client);
         $this->accessStore->save($access);
