@@ -16,19 +16,21 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
                 return null;
             });
 
-            $app['security.authentication_listener.'.$name.'.soauth'] = $app->share(function () use ($app, $name) {
+            if(!isset($app['security.authentication_listener.'.$name.'.soauth'])) {
+                $app['security.authentication_listener.'.$name.'.soauth'] = $app->share(function () use ($app, $name) {
 
-                $listener = new Listener($name, $app['security'], $app['soauth.auth.provider'], $app['soauth.storage.handler']);
+                    $listener = new Listener($name, $app['security'], $app['soauth.auth.provider'], $app['soauth.storage.handler']);
 
-                $listener->setUserProvider($app['soauth.user.provider']);
-                $listener->setClientProvider($app['soauth.client.provider']);
+                    $listener->setUserProvider($app['soauth.user.provider']);
+                    $listener->setClientProvider($app['soauth.client.provider']);
 
-                if(isset($app['logger']) && $app['logger']) {
-                    $listener->setLogger($app['logger']);
-                }
+                    if(isset($app['logger']) && $app['logger']) {
+                        $listener->setLogger($app['logger']);
+                    }
 
-                return $listener;
-            });
+                    return $listener;
+                });
+            }
 
             return array(
                 // the authentication provider id
