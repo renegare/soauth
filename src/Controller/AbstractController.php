@@ -17,29 +17,6 @@ abstract class AbstractController implements LoggerInterface {
     protected $userProvider;
     protected $clientProvider;
 
-    protected function validate(array $constraints, array $data) {
-
-        $validator = Validation::createValidatorBuilder()
-            ->setApiVersion(Validation::API_VERSION_2_4)
-            ->getValidator();
-
-        $violations = $validator->validateValue($data, new Collection([
-            'fields' => $constraints,
-            'allowExtraFields' => false,
-            'allowMissingFields' => false
-        ]));
-
-        if(count($violations)) {
-            $errors = [];
-            foreach($violations as $violation) {
-                $path = preg_replace('/[\[\]]/', '', $violation->getPropertyPath());
-                $errors[$path] = $violation->getMessage();
-            }
-
-            throw new BadDataException($errors, 'Invalid request data');
-        }
-    }
-
     public function setUserProvider(UserProviderInterface $provider) {
         $this->userProvider = $provider;
     }
@@ -62,10 +39,10 @@ abstract class AbstractController implements LoggerInterface {
         return $client;
     }
 
-    protected function getValidClient($clientId, $clientSecret) {
-        $client = $this->getClient($clientId);
-        if(!$client || $clientSecret !== $client->getSecret() || !$client->isActive()) {
-            throw new SoauthException('Invalid client, client id: ' . $clientId);
+    protected function getValidClient($id, $secret) {
+        $client = $this->getClient($id);
+        if(!$client || $secret !== $client->getSecret() || !$client->isActive()) {
+            throw new SoauthException('Invalid client, client id: ' . $id);
         }
 
         return $client;

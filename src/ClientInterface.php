@@ -36,4 +36,11 @@ interface ClientInterface extends UserInterface {
      */
     public function getSecret();
 
+    /**
+     * validate an absolute redirect uri against the client details
+     * @param $redirectUri
+     * @return boolean
+     */
+    public function isValidRedirectUri($redirectUri);
+
 }

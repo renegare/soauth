@@ -94,4 +94,12 @@ class Client implements ClientInterface {
         $this->id = null;
         $this->secret = null;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isValidRedirectUri($redirectUri) {
+        $pattern = sprintf('/^https?:\\/\\/.*%s(?:\\/.*)?$/', preg_replace('/\./', '\\.', $this->getDomain()));
+        return !!preg_match($pattern, $redirectUri);
+    }
 }

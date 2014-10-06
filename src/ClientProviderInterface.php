@@ -9,12 +9,4 @@ interface ClientProviderInterface {
      * @return ClientInterface|string|null
      */
     public function getClient($id);
-
-    /**
-     * validate client
-     * @param ClientInterface $client
-     * @param string $redirectUri - requested callback url
-     * @return boolean
-     */
-    public function isValid(ClientInterface $client, $redirectUri);
 }

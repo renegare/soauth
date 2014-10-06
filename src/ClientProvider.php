@@ -31,12 +31,4 @@ class ClientProvider implements ClientProviderInterface {
             }
         }
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isValid(ClientInterface $client, $redirectUri) {
-        $pattern = sprintf('/^https?:\\/\\/.*%s(?:\\/.*)?$/', preg_replace('/\./', '\\.', $client->getDomain()));
-        return $client->isActive() && preg_match($pattern, $redirectUri);
-    }
 }
