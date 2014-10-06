@@ -8,17 +8,15 @@
     "require": {
         "php": ">=5.4.0",
         "symfony/http-foundation": ">=2.3,<2.6-dev",
-        "symfony/validator": ">=2.4,<2.5.3"
+        "symfony/security": ">=2.5.0",
+        "silex/silex": ">=1.2.0"
     },
 
     "require-dev": {
-        "symfony/security": ">=2.5.0",
-        "silex/silex": ">=1.2.0",
         "phpunit/phpunit": "4.1.*",
         "symfony/process": "v2.5.0",
         "symfony/browser-kit": "v2.5.0",
-        "symfony/css-selector": "v2.5.0",
-        "satooshi/php-coveralls": "dev-master"
+        "symfony/css-selector": "v2.5.0"
     },
 
     "scripts": {
