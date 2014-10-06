@@ -70,7 +70,7 @@ class Client implements ClientInterface {
      * {@inheritdoc}
      */
     public function getPassword() {
-        return $this->getSecret;
+        return $this->getSecret();
     }
 
     /**

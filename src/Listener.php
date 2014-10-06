@@ -4,29 +4,29 @@ namespace Renegare\Soauth;
 
 use Symfony\Component\Security\Http\Firewall\ListenerInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\SecurityContextInterface;
 use Renegare\Soauth\AuthorizationProvider\AuthorizationProviderInterface;
+use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
 
 class Listener implements ListenerInterface, LoggerInterface {
-    use LoggerTrait;
+    use LoggerTrait, ClientUserProviderTrait;
 
     protected $securityContext;
     protected $firewallName;
-    protected $accessProvider;
+    protected $authProvider;
 
     /**
      * @param string $firewallName
      * @param SecurityContextInterface $securityContext
      * @param SecurityAccessProviderInterface $accessProvider
      */
-    public function __construct($firewallName, SecurityContextInterface $securityContext, SecurityAccessProviderInterface $accessProvider, AuthorizationProviderInterface $authProvider) {
+    public function __construct($firewallName, SecurityContextInterface $securityContext, AuthorizationProviderInterface $authProvider, AccessStorageHandlerInterface $accessStorage) {
         $this->firewallName = $firewallName;
         $this->securityContext = $securityContext;
-        $this->accessProvider = $accessProvider;
         $this->authProvider = $authProvider;
+        $this->accessStorage = $accessStorage;
     }
 
     /**
@@ -38,29 +38,39 @@ class Listener implements ListenerInterface, LoggerInterface {
         $this->debug('> Security listener request', ['headers' => $request->headers->all()]);
 
         try {
-            $token = $this->getAccessToken($request);
-            $this->debug('User appears to be logged in already. #Noop', $token->getCredentials()->toArray());
+            $token = $this->getSecurityToken($request);
+            $this->debug('User appears to be logged in already. #Noop', $token->getAccess()->toArray());
             $this->securityContext->setToken($token);
-        } catch (BadRequestException $e) {
+        } catch (SoauthException $e) {
             $this->error($e->getMessage(), ['exception' => $e]);
-            $response = new JsonResponse($e->getMessage(), $e->getCode());
+            $response = new JsonResponse('No valid authorization found', JsonResponse::HTTP_UNAUTHORIZED);
             $event->setResponse($response);
         }
     }
 
-    protected function getAccessToken(Request $request) {
-        try {
-            $accessToken = $this->authProvider->getAuth($request);
-            return $this->accessProvider->getSecurityToken($accessToken);
-        } catch (SoauthException $e) {
-            $this->error($e->getMessage(), ['exception' => $e]);
-            $exception = new BadRequestException($request, 'No valid authorization found', Response::HTTP_UNAUTHORIZED, $e);
-            throw $exception;
-        }
-    }
+    /**
+     * get security token
+     * @param Request $request
+     * @return SecurityToken
+     */
+    protected function getSecurityToken(Request $request) {
+        $accessToken = $this->authProvider->getAuth($request);
 
-    protected function parseAccessToken($authorization) {
-        $authorization = explode(' ', $authorization);
-        return trim($authorization[1]);
+        if(!($credentials = $this->accessStorage->getAccess($accessToken))) {
+            throw new SoauthException(sprintf('No access found'));
+        }
+
+        $roles = [];
+        if($credentials instanceOf Access\AuthorizationCodeAccess) {
+            $user = $this->getUser($credentials->getUsername());
+            $roles = $user->getRoles();
+        } else if($credentials instanceOf Access\ClientCredentialsAccess) {
+            $user = $this->getClient($credentials->getClientId());
+        }
+
+        $token = new SecurityToken($credentials, $roles);
+        $token->setAuthenticated(true);
+        $token->setUser($user);
+        return $token;
     }
 }

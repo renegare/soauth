@@ -31,13 +31,4 @@ interface AccessProviderInterface {
      * @return CredentialsInterface
      */
     public function refreshAccess(Access $access, ClientInterface $client, UserInterface $user = null);
-
-    /**
-     * get access credentials for the given auth code
-     * @todo ... rethink this?!
-     * @param string $authCode
-     * @param string $clientSecret
-     * @return CredentialsInterface
-     */
-    public function exchange($authCode, $clientSecret);
 }

@@ -3,31 +3,47 @@
 namespace Renegare\Soauth;
 
 use Silex\Application;
+use Renegare\Soauth\Access\Access;
+use Renegare\Soauth\Access\AuthorizationCodeAccess;
+use Renegare\Soauth\Access\ClientCredentialsAccess;
 
 trait SoauthTestCaseTrait {
 
-    public function createCredentials(array $overrides = []) {
+    public function createAuthorizationCodeAccess(array $overrides = []) {
         $attr = array_merge([
-            'accessCode' => 'valid-test-access-code=',
-            'authCode' => 'valid-test-auth-code=',
-            'clientId' => 1,
-            'lifetime' => 3600,
-            'refreshCode' => 'valid-test-refresh-code=',
-            'username' => 'test@example.com'
+            'username' => 'test@example.com',
+            'client_id' => 1,
+            'auth_code' => 'valid-test-auth-code=',
+            'access_token' => 'valid-test-access-code=',
+            'refresh_token' => 'valid-test-refresh-code=',
+            'expires_in' => 3600
         ], $overrides);
 
         extract($attr);
 
-        return new Credentials($authCode, $accessCode, $refreshCode, $lifetime, $clientId, $username);
+        return new AuthorizationCodeAccess($username, $client_id, $auth_code, $access_token, $refresh_token, $expires_in);
     }
 
-    public function saveCredentials(CredentialsInterface $credentials, $createdTime = null, Application $app) {
+    public function createClientCredentialsAccess(array $overrides = []) {
+        $attr = array_merge([
+            'client_id' => 1,
+            'access_token' => 'valid-test-access-code=',
+            'refresh_token' => 'valid-test-refresh-code=',
+            'expires_in' => 3600
+        ], $overrides);
+
+        extract($attr);
+
+        return new ClientCredentialsAccess($client_id, $access_token, $refresh_token, $expires_in);
+    }
+
+    public function saveAccess(Application $app, Access $access, $createdTime = null) {
         if($app['soauth.test']) {
             $storage = $app['soauth.storage.handler.mock'];
         } else {
             $storage = $app['soauth.storage.handler'];
         }
 
-        return $storage->save($credentials, $createdTime);
+        return $storage->save($access, $createdTime);
     }
 }
