@@ -5,7 +5,9 @@ namespace Renegare\Soauth;
 use Silex\ControllerProviderInterface;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+
 use Renegare\Soauth\Exception\SoauthException;
+use Renegare\Soauth\SecurityToken\SecurityTokenProvider;
 
 class OAuthControllerServiceProvider implements ControllerProviderInterface, ServiceProviderInterface {
 
@@ -17,21 +19,17 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
                 return null;
             });
 
-            if(!isset($app['security.authentication_listener.'.$name.'.soauth'])) {
-                $app['security.authentication_listener.'.$name.'.soauth'] = $app->share(function () use ($app, $name) {
 
-                    $listener = new Listener($name, $app['security'], $app['soauth.auth.provider'], $app['soauth.storage.handler']);
+            $app['security.authentication_listener.'.$name.'.soauth'] = $app->share(function () use ($app, $name) {
 
-                    $listener->setUserProvider($app['soauth.user.provider']);
-                    $listener->setClientProvider($app['soauth.client.provider']);
+                $listener = new Listener($name, $app['security'], $app['soauth.security.token.provider']);
 
-                    if(isset($app['logger']) && $app['logger']) {
-                        $listener->setLogger($app['logger']);
-                    }
+                if(isset($app['logger']) && $app['logger']) {
+                    $listener->setLogger($app['logger']);
+                }
 
-                    return $listener;
-                });
-            }
+                return $listener;
+            });
 
             return array(
                 // the authentication provider id
@@ -43,6 +41,13 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
                 // the position of the listener in the stack
                 'pre_auth'
             );
+        });
+
+        $app['soauth.security.token.provider'] = $app->share(function(Application $app) {
+            $provider = new SecurityTokenProvider($app['soauth.auth.provider'], $app['soauth.storage.handler']);
+            $provider->setUserProvider($app['soauth.user.provider']);
+            $provider->setClientProvider($app['soauth.client.provider']);
+            return $provider;
         });
 
         $app['soauth.access.provider'] = $app->share(function(Application $app){

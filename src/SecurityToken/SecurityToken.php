@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\SecurityToken;
 
 use Renegare\Soauth\Access\Access;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
