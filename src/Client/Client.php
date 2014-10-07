@@ -65,7 +65,7 @@ class Client implements ClientInterface {
      * {@inheritdoc}
      */
     public function getRoles() {
-        return [];
+        return $this->roles;
     }
 
     /**
