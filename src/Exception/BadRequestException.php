@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Exception;
 
 use Symfony\Component\HttpFoundation\Request;
 

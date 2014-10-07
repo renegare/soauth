@@ -4,13 +4,13 @@ namespace Renegare\Soauth\Test;
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
-use Renegare\Soauth\GrantType;
+use Renegare\Soauth\Enum\GrantType;
 use Renegare\Soauth\Access\AuthorizationCodeAccess;
 
 class TokenControllerTest extends WebtestCase {
 
     /**
-     * @expectedException Renegare\Soauth\SoauthException
+     * @expectedException Renegare\Soauth\Exception\SoauthException
      */
     public function testUnsupportedGrantType() {
         $client = $this->createClient();
@@ -48,7 +48,7 @@ class TokenControllerTest extends WebtestCase {
     }
     /**
      * @dataProvider provideTestAuthorizationCodeInvalidClientData
-     * @expectedException Renegare\Soauth\SoauthException
+     * @expectedException Renegare\Soauth\Exception\SoauthException
      */
     public function testAuthorizationCodeInvalidRequestData($requestData) {
         $app = $this->getApplication();
@@ -75,7 +75,7 @@ class TokenControllerTest extends WebtestCase {
     }
 
     /**
-     * @expectedException Renegare\Soauth\SoauthException
+     * @expectedException Renegare\Soauth\Exception\SoauthException
      */
     public function testRefreshCodeMismatch() {
         $app = $this->getApplication();
@@ -103,7 +103,7 @@ class TokenControllerTest extends WebtestCase {
     }
 
     /**
-     * @expectedException Renegare\Soauth\SoauthException
+     * @expectedException Renegare\Soauth\Exception\SoauthException
      */
     public function testRefreshCodeInvalidUser() {
         $app = $this->getApplication();

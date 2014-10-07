@@ -2,7 +2,7 @@
 
 namespace Renegare\Soauth\AuthorizationProvider;
 
-use Renegare\Soauth\SoauthException;
+use Renegare\Soauth\Exception\SoauthException;
 use Symfony\Component\HttpFoundation\Request;
 
 interface AuthorizationProviderInterface {

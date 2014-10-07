@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Enum;
 
 class GrantType {
     const AUTHORIZATION_CODE = 'authorization_code';

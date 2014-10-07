@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Client;
 
 class Client implements ClientInterface {
     protected $id;

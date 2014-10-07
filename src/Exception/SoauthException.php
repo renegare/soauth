@@ -1,5 +1,5 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Exception;
 
 class SoauthException extends \Exception {}

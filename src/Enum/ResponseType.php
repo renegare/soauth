@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Enum;
 
 class ResponseType {
     const CODE = 'code';

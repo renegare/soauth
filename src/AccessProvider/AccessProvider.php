@@ -1,13 +1,17 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\AccessProvider;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\User\UserInterface;
+
+use Renegare\Soauth\Access\Access;
 use Renegare\Soauth\Access\ClientCredentialsAccess;
 use Renegare\Soauth\Access\AuthorizationCodeAccess;
 use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Renegare\Soauth\Access\Access;
+use Renegare\Soauth\Log\LoggerInterface;
+use Renegare\Soauth\Log\LoggerTrait;
+use Renegare\Soauth\Client\ClientInterface;
 
 class AccessProvider implements AccessProviderInterface, LoggerInterface {
     use LoggerTrait;

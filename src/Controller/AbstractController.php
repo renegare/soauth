@@ -2,8 +2,8 @@
 
 namespace Renegare\Soauth\Controller;
 
-use Renegare\Soauth\LoggerInterface;
-use Renegare\Soauth\LoggerTrait;
+use Renegare\Soauth\Log\LoggerInterface;
+use Renegare\Soauth\Log\LoggerTrait;
 use Renegare\Soauth\ClientUserProviderTrait;
 
 abstract class AbstractController implements LoggerInterface {

@@ -7,8 +7,12 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\SecurityContextInterface;
+
 use Renegare\Soauth\AuthorizationProvider\AuthorizationProviderInterface;
 use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
+use Renegare\Soauth\Log\LoggerInterface;
+use Renegare\Soauth\Log\LoggerTrait;
+use Renegare\Soauth\Exception\SoauthException;
 
 class Listener implements ListenerInterface, LoggerInterface {
     use LoggerTrait, ClientUserProviderTrait;

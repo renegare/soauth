@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\User;
 
 use Symfony\Component\Security\Core\User\UserInterface;
 

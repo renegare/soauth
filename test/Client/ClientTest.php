@@ -1,8 +1,9 @@
 <?php
 
-namespace Renegare\Soauth\Test;
+namespace Renegare\Soauth\Test\Client;
 
-use Renegare\Soauth\Client;
+use Renegare\Soauth\Client\Client;
+use Renegare\Soauth\Test\WebtestCase;
 
 class ClientTest extends WebtestCase {
 

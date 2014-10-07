@@ -7,10 +7,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-use Renegare\Soauth\ResponseType;
+use Renegare\Soauth\Enum\ResponseType;
 use Renegare\Soauth\RendererInterface;
-use Renegare\Soauth\AccessProviderInterface;
-use Renegare\Soauth\SoauthException;
+use Renegare\Soauth\AccessProvider\AccessProviderInterface;
+use Renegare\Soauth\Exception\SoauthException;
 use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
 
 class AuthController extends AbstractController {

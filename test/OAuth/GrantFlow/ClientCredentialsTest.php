@@ -24,7 +24,7 @@ class ClientCredentialsTest extends FlowTestCase {
 
         $app->get('/client-resource', function() use ($app) {
             $user = $app['security']->getToken()->getUser();
-            $this->assertInstanceOf('Renegare\Soauth\ClientInterface', $user);
+            $this->assertInstanceOf('Renegare\Soauth\Client\ClientInterface', $user);
             $this->assertEquals('someclient.com', $user->getDomain());
             return 'All Good!';
         });

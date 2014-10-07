@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Log;
 
 use Psr\Log\LoggerInterface as PsrLoggerInterface;
 use Psr\Log\LoggerAwareInterface;

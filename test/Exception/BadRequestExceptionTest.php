@@ -1,8 +1,9 @@
 <?php
 
-namespace Renegare\Soauth\Test;
+namespace Renegare\Soauth\Test\Exception;
 
-use Renegare\Soauth\BadRequestException;
+use Renegare\Soauth\Exception\BadRequestException;
+use Renegare\Soauth\Test\WebtestCase;
 
 class BadRequestExceptionTest extends WebtestCase {
 

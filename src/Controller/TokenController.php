@@ -5,10 +5,10 @@ namespace Renegare\Soauth\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-use Renegare\Soauth\GrantType;
-use Renegare\Soauth\AccessProviderInterface;
+use Renegare\Soauth\Enum\GrantType;
+use Renegare\Soauth\AccessProvider\AccessProviderInterface;
 use Renegare\Soauth\AccessStorageHandler\AccessStorageHandlerInterface;
-use Renegare\Soauth\SoauthException;
+use Renegare\Soauth\Exception\SoauthException;
 use Renegare\Soauth\Access\AuthorizationCodeAccess;
 use Renegare\Soauth\AuthorizationProvider\AuthorizationProviderInterface;
 

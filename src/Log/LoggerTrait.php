@@ -1,6 +1,6 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\Log;
 
 use Psr\Log\LoggerTrait as PsrLoggerTrait;
 use Psr\Log\LoggerAwareTrait;

@@ -1,12 +1,14 @@
 <?php
 
-namespace Renegare\Soauth;
+namespace Renegare\Soauth\AccessProvider;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\User\UserInterface;
+
 use Renegare\Soauth\Access\ClientCredentialsAccess;
 use Renegare\Soauth\Access\AuthorizationCodeAccess;
 use Renegare\Soauth\Access\Access;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Renegare\Soauth\Client\ClientInterface;
 
 interface AccessProviderInterface {
     /**
@@ -28,7 +30,7 @@ interface AccessProviderInterface {
      * generate a new set of credentials from the old one
      * @param Request $request
      * @param $refreshCode string
-     * @return CredentialsInterface
+     * @return Access
      */
     public function refreshAccess(Access $access, ClientInterface $client, UserInterface $user = null);
 }

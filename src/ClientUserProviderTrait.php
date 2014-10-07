@@ -2,14 +2,24 @@
 
 namespace Renegare\Soauth;
 
+use Renegare\Soauth\User\UserProviderInterface;
+use Renegare\Soauth\Client\ClientProviderInterface;
+use Renegare\Soauth\Exception\SoauthException;
+
 trait ClientUserProviderTrait {
     protected $userProvider;
     protected $clientProvider;
 
+    /**
+     * @param UserProviderInterface $provider
+     */
     public function setUserProvider(UserProviderInterface $provider) {
         $this->userProvider = $provider;
     }
 
+    /**
+     * @param ClientProviderInterface $provider
+     */
     public function setClientProvider(ClientProviderInterface $provider) {
         $this->clientProvider = $provider;
     }
