@@ -2,50 +2,36 @@
 
 namespace Renegare\Soauth\Test\OAuth\GrantFlow;
 
-use Renegare\Soauth\Test\FlowTestCase;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
+use Renegare\Soauth\Test\FlowTestCase;
+use Renegare\Soauth\SoauthTestCaseTrait;
 
 class RefreshFlowTest extends FlowTestCase {
+    use SoauthTestCaseTrait;
 
-    protected $app;
-    protected $access;
-    protected $client;
-    protected $verifyAccessTokenCb;
-
-    public function setUp() {
-        parent::setUp();
-
+    public function testAuhorizationCodeRefreshFlow() {
         $app = $this->getApplication();
-
-        $client = $app['soauth.client.provider']->getClient(1);
-        $user = $app['soauth.user.provider']->getUser('test@example.com');
-        $access = $app['soauth.access.provider']->generateAuthorizationCodeAccess($user, $client);
-        $app['soauth.storage.handler']->save($access);
-
-        $this->access = $access;
-        $this->client = $client;
-
-        $app->get('/verify-access-token', function(Application $app) use (&$verifyAccessTokenCb){
-            if($verifyAccessTokenCb) {
-                $verifyAccessTokenCb($app);
-            }
+        $registeredClient = $app['soauth.client.provider']->getClient(1);
+        $app->get('/verify-access-token', function(Application $app) {
             return 'Access Granted';
         });
-    }
 
-    public function testFlow() {
-        // ensure we have access
-        $accessToken = $this->access->getAccessToken();
+        $access = $this->createAuthorizationCodeAccess([
+            'client_id' => $registeredClient->getId(),
+            'client_secret' => $registeredClient->getSecret()
+        ]);
+        $this->saveAccess($app, $access);
 
         // refresh access
-        $refreshToken = $this->access->getRefreshToken();
+        $accessToken = $access->getAccessToken();
+        $refreshToken = $access->getRefreshToken();
         $client = $this->createClient(['HTTP_Authorization' => 'Bearer ' . $accessToken]);
         $client->request('POST', '/oauth/token', [
             'grant_type' => 'refresh_token',
             'refresh_token' => $refreshToken,
-            'client_id' => $this->client->getId(),
-            'client_secret' => $this->client->getSecret()
+            'client_id' => $registeredClient->getId(),
+            'client_secret' => $registeredClient->getSecret()
         ]);
 
         $response = $client->getResponse();
