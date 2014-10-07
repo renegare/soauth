@@ -91,7 +91,6 @@ class Client implements ClientInterface {
      * {@inheritdoc}
      */
     public function eraseCredentials() {
-        $this->id = null;
         $this->secret = null;
     }
 
