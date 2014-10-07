@@ -39,7 +39,7 @@ class FlowTestCase extends WebtestCase {
         $app['soauth.renderer'] = $this->mockRenderer;
         $this->mockRenderer->expects($this->any())
             ->method('renderSignInForm')->will($this->returnCallback(function($data) {
-                return '<form method="post" action="/oauth/auth">
+                return '<form method="post">
     <input type="text" name="username" value="'. (isset($data['username'])? $data['username'] : '') .'"/>
     <input type="password" name="password" />
     <input type="hidden" name="redirect_uri" value="'. $data['redirect_uri'] .'" />
