@@ -5,6 +5,7 @@ namespace Renegare\Soauth;
 use Silex\ControllerProviderInterface;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
+use Renegare\Soauth\Exception\SoauthException;
 
 class OAuthControllerServiceProvider implements ControllerProviderInterface, ServiceProviderInterface {
 
@@ -63,7 +64,7 @@ class OAuthControllerServiceProvider implements ControllerProviderInterface, Ser
                 return $app['soauth.storage.handler.mock'];
             }
 
-            throw \RuntimeException("No 'soauth.storage.handler' service configured!");
+            throw new SoauthException("No 'soauth.storage.handler' service configured!");
         });
 
         $app['soauth.client.provider'] = $app->share(function(Application $app){
