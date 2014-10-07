@@ -13,11 +13,11 @@ use Renegare\Soauth\Client\ClientInterface;
 interface AccessProviderInterface {
     /**
      * generate authorization code access
-     * @param UserInterface $user
      * @param ClientInterface $client
+     * @param UserInterface $user
      * @return AuthorizationCodeAccess
      */
-    public function generateAuthorizationCodeAccess(UserInterface $user, ClientInterface $client);
+    public function generateAuthorizationCodeAccess(ClientInterface $client, UserInterface $user);
 
     /**
      * generate client credentials access

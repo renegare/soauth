@@ -66,7 +66,7 @@ class AuthController extends AbstractController {
             $data->set('error', 'Bad username and password combination');
             $response = new Response($this->renderer->renderSignInForm($data->all()), Response::HTTP_BAD_REQUEST);
         } else {
-            $access = $this->accessProvider->generateAuthorizationCodeAccess($user, $client);
+            $access = $this->accessProvider->generateAuthorizationCodeAccess($client, $user);
             $this->accessStore->save($access);
             $response = new RedirectResponse($data->get('redirect_uri') . '?code=' . $access->getAuthCode());
         }

@@ -28,15 +28,15 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
     /**
      * {@inheritdoc}
      */
-    public function generateAuthorizationCodeAccess(UserInterface $user, ClientInterface $client) {
+    public function generateAuthorizationCodeAccess(ClientInterface $client, UserInterface $user) {
         $clientId = $client->getId();
         $username = $user->getUsername();
-
+        
         $authCode = $this->getDigest(sprintf('ac:ac:%s:%s', $clientId, $username));
         $accessToken = $this->getDigest(sprintf('ac:at:%s:%s', $clientId, $username));
         $refreshToken = $this->getDigest(sprintf('ac:rt:%s:%s', $clientId, $username));
 
-        return new AuthorizationCodeAccess($username, $clientId, $authCode, $accessToken, $refreshToken);
+        return new AuthorizationCodeAccess($clientId, $username, $authCode, $accessToken, $refreshToken);
     }
 
     /**
@@ -54,7 +54,7 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
      */
     public function refreshAccess(Access $access, ClientInterface $client, UserInterface $user = null) {
         if($access instanceOf AuthorizationCodeAccess) {
-            $refreshedAccess = $this->generateAuthorizationCodeAccess($user, $client);
+            $refreshedAccess = $this->generateAuthorizationCodeAccess($client, $user);
         } else if($access instanceOf ClientCredentialsAccess ) {
             $refreshedAccess = $this->generateClientCredentialsAccess($client);
         }

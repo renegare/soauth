@@ -8,14 +8,14 @@ class AuthorizationCodeAccess extends ClientCredentialsAccess {
     protected $authCode;
 
     /**
-     * @param string $username
      * @param string $clientId
+     * @param string $username
      * @param string $authCode;
      * @param string $accessToken
      * @param string $refreshToken
      * @param string $expiresIn
      */
-    public function __construct($username, $clientId, $authCode, $accessToken, $refreshToken, $expiresIn = 3600) {
+    public function __construct($clientId, $username, $authCode, $accessToken, $refreshToken, $expiresIn = 3600) {
         parent::__construct($clientId, $accessToken, $refreshToken, $expiresIn);
         $this->username = $username;
         $this->authCode = $authCode;

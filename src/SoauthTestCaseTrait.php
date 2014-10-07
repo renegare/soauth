@@ -21,7 +21,7 @@ trait SoauthTestCaseTrait {
 
         extract($attr);
 
-        return new AuthorizationCodeAccess($username, $client_id, $auth_code, $access_token, $refresh_token, $expires_in);
+        return new AuthorizationCodeAccess($client_id, $username, $auth_code, $access_token, $refresh_token, $expires_in);
     }
 
     public function createClientCredentialsAccess(array $overrides = []) {
