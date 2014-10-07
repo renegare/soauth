@@ -38,12 +38,6 @@ trait SoauthTestCaseTrait {
     }
 
     public function saveAccess(Application $app, Access $access, $createdTime = null) {
-        if($app['soauth.test']) {
-            $storage = $app['soauth.storage.handler.mock'];
-        } else {
-            $storage = $app['soauth.storage.handler'];
-        }
-
-        return $storage->save($access, $createdTime);
+        return $app['soauth.storage.handler']->save($access, $createdTime);
     }
 }

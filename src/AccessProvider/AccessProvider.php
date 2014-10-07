@@ -56,7 +56,7 @@ class AccessProvider implements AccessProviderInterface, LoggerInterface {
         if($access instanceOf AuthorizationCodeAccess) {
             $refreshedAccess = $this->generateAuthorizationCodeAccess($user, $client);
         } else if($access instanceOf ClientCredentialsAccess ) {
-            throw new \RuntimeException('Hmmm ... needs to be implemented!');
+            $refreshedAccess = $this->generateClientCredentialsAccess($client);
         }
 
         $refreshedAccess->setPreviousAccess($access);
