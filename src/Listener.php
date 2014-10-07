@@ -64,13 +64,14 @@ class Listener implements ListenerInterface, LoggerInterface {
             throw new SoauthException(sprintf('No access found'));
         }
 
-        $roles = [];
         if($credentials instanceOf Access\AuthorizationCodeAccess) {
             $user = $this->getUser($credentials->getUsername());
-            $roles = $user->getRoles();
         } else if($credentials instanceOf Access\ClientCredentialsAccess) {
             $user = $this->getClient($credentials->getClientId());
         }
+
+        // since client can have a specified role
+        $roles = $user->getRoles();
 
         $token = new SecurityToken($credentials, $roles);
         $token->setAuthenticated(true);

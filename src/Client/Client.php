@@ -15,13 +15,15 @@ class Client implements ClientInterface {
      * @param string $domain
      * @param string $secret
      * @param boolean $active
+     * @param array $roles
      */
-    public function __construct($id, $name, $domain, $secret, $active = true) {
+    public function __construct($id, $name, $domain, $secret, $active = true, array $roles = []) {
         $this->id = $id;
         $this->name = $name;
         $this->domain = $domain;
         $this->secret = $secret;
         $this->active = $active;
+        $this->roles = $roles;
     }
 
     /**
