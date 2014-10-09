@@ -58,7 +58,7 @@ class TokenController extends AbstractController {
         $client = $this->getValidClient($clientId, $clientSecret);
 
         $access = $this->accessStore->getAuthorizationCodeAccess($authCode);
-        if(!$access || $access->getClientId() !== $client->getId()) {
+        if(!$access || (integer) $access->getClientId() !== $client->getId()) {
             throw new SoauthException('Invalid authorization code');
         }
 
